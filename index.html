@@ -264,6 +264,12 @@
         <p id="message"></p>
 
         <button class="home-btn" onclick="goHome()">홈으로 돌아가기</button>
+
+        <!-- 오디오 파일 추가 -->
+        <audio id="correctSound">
+            <source src="https://actions.google.com/sounds/v1/cartoon/clang_and_wobble.ogg" type="audio/ogg">
+            Your browser does not support the audio element.
+        </audio>
     </div>
 
     <footer>
@@ -386,6 +392,10 @@
                 document.getElementById('message').style.color = "#2ecc71";
                 score += 10;
                 document.getElementById('scoreDisplay').textContent = `점수: ${score}`;
+                
+                // 정답 시 띵동 소리 재생
+                document.getElementById('correctSound').play();
+                
                 currentWordIndex++;
                 setTimeout(() => {
                     displayNextWord();
