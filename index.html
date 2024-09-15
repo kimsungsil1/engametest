@@ -12,8 +12,13 @@
             background-color: #f4f4f4;
             color: #2c3e50;
             text-align: center;
-            padding: 20px;
+            padding: 0;
             margin: 0;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            overflow-y: auto; /* 스크롤 가능하도록 설정 */
         }
 
         h1 {
@@ -29,49 +34,27 @@
             background-color: #fff;
             border-radius: 12px;
             box-shadow: 0 10px 20px rgba(0, 0, 0, 0.1);
+            min-height: calc(100vh - 40px); /* 최소 높이를 설정하여 키패드가 올라와도 화면을 유지 */
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
         }
 
-        select {
+        select, input, button {
             padding: 12px;
             font-size: 1.2em;
             margin-bottom: 20px;
             border: 2px solid #3498db;
             border-radius: 6px;
             outline: none;
-            width: 80%;
-        }
-
-        .word-container {
-            margin-top: 20px;
-        }
-
-        .word-item {
-            font-size: 1.8em;
-            margin-bottom: 20px;
-            color: #34495e;
-        }
-
-        input {
-            padding: 15px;
-            font-size: 1.2em;
-            width: 80%;
-            max-width: 500px;
-            border: 2px solid #3498db;
-            border-radius: 6px;
-            outline: none;
-            margin-bottom: 20px;
+            width: 100%;
         }
 
         button {
-            padding: 15px;
-            font-size: 1.2em;
             color: white;
             background-color: #3498db;
             border: none;
-            border-radius: 6px;
             cursor: pointer;
-            margin: 10px;
-            width: 45%;
         }
 
         button:hover {
@@ -151,10 +134,9 @@
 
         <div class="word-container">
             <div class="word-item" id="koreanWord">여기에 한글 단어가 표시됩니다</div>
-            <input type="text" id="englishInput" placeholder="영어 단어를 입력하세요" onkeypress="handleKeyPress(event)">
+            <input type="text" id="englishInput" placeholder="영어 단어를 입력하세요" onfocus="adjustForKeyboard()" onblur="resetLayout()">
         </div>
 
-        <!-- 이미지 컨테이너 추가 -->
         <div id="imageContainer">
             <img id="wordImage" src="" alt="단어 이미지" style="display: none;">
         </div>
@@ -169,7 +151,6 @@
 
         <p id="message"></p>
 
-        <!-- 홈으로 돌아가는 버튼 -->
         <button class="home-btn" onclick="goHome()">홈으로 돌아가기</button>
     </div>
 
@@ -346,6 +327,16 @@
             if (event.key === "Enter") {
                 checkAnswer();
             }
+        }
+
+        // 키보드가 나타났을 때 레이아웃 조정
+        function adjustForKeyboard() {
+            document.querySelector('.container').style.minHeight = '80vh';
+            window.scrollTo(0, document.body.scrollHeight);  // 화면을 아래로 스크롤하여 버튼이 보이도록 함
+        }
+
+        function resetLayout() {
+            document.querySelector('.container').style.minHeight = '100vh';
         }
 
         window.onload = () => {
