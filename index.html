@@ -3,8 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Word Master: 영어 어휘 도전</title>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.16.9/xlsx.full.min.js"></script>
+    <title>Word Master: 영어 어휘 도전 & 교재 학습</title>
     <style>
         /* Reset */
         * {
@@ -151,6 +150,31 @@
             font-size: 1rem;
         }
 
+        .pdf-container {
+            width: 100%;
+            max-width: 800px;
+            margin: 20px auto;
+        }
+
+        iframe {
+            width: 100%;
+            height: 600px;
+            border: none;
+        }
+
+        .nav-buttons {
+            display: flex;
+            justify-content: space-between;
+            width: 100%;
+            max-width: 800px;
+            margin: 10px auto;
+        }
+
+        .nav-buttons button {
+            padding: 10px 20px;
+            font-size: 1.1rem;
+        }
+
     </style>
 </head>
 <body>
@@ -167,6 +191,8 @@
         </select>
 
         <button id="startButton">게임 시작</button>
+
+        <button id="viewPdfButton">교재 보기</button>
     </div>
 
     <div class="container" id="gameContainer" style="display:none;">
@@ -180,10 +206,8 @@
             <input type="text" id="englishInput" placeholder="영어 단어를 입력하세요" onkeypress="handleKeyPress(event)">
         </div>
 
-        <!-- 메시지를 제출 버튼 위로 이동 -->
         <p id="message"></p>
 
-        <!-- 제출, 다음으로 넘기기, 음성 듣기 순서로 변경 -->
         <button id="submitButton" onclick="checkAnswer()">제출</button>
         <button id="skipButton" class="next-btn" onclick="skipWord()">다음으로 넘기기</button>
         <button id="listenButton" onclick="playWordAudio()">음성 듣기</button>
@@ -201,6 +225,15 @@
         </audio>
     </div>
 
+    <div class="pdf-container" id="pdfContainer" style="display: none;">
+        <h1>교재 보기</h1>
+        <iframe src="abcbook.pdf" type="application/pdf"></iframe>
+        <div class="nav-buttons">
+            <button onclick="goBackToMenu()">메뉴로 돌아가기</button>
+            <button onclick="goHome()">홈으로 돌아가기</button>
+        </div>
+    </div>
+
     <footer>
         제작: 김성실 | 문의: <a href="mailto:sungsil.kim@lcnine.kr">sungsil.kim@lcnine.kr</a>
     </footer>
@@ -215,6 +248,7 @@
         let currentEnglishWord = ""; 
 
         document.getElementById('startButton').addEventListener('click', startGame);
+        document.getElementById('viewPdfButton').addEventListener('click', viewPdf);
 
         function shuffleArray(array) {
             for (let i = array.length - 1; i > 0; i--) {
@@ -363,6 +397,7 @@
 
         function goHome() {
             document.getElementById('gameContainer').style.display = 'none';
+            document.getElementById('pdfContainer').style.display = 'none';
             document.getElementById('mainMenu').style.display = 'block';
             clearInterval(timer);
         }
@@ -379,9 +414,20 @@
             }
         }
 
+        function viewPdf() {
+            document.getElementById('mainMenu').style.display = 'none';
+            document.getElementById('pdfContainer').style.display = 'block';
+        }
+
+        function goBackToMenu() {
+            document.getElementById('pdfContainer').style.display = 'none';
+            document.getElementById('mainMenu').style.display = 'block';
+        }
+
         window.onload = () => {
             document.getElementById('mainMenu').style.display = 'block';
             document.getElementById('gameContainer').style.display = 'none';
+            document.getElementById('pdfContainer').style.display = 'none';
         };
     </script>
 
