@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Word Master: 영어 마스터 도전</title>
+    <title>Word Master: 영어 어휘 도전</title>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.16.9/xlsx.full.min.js"></script>
     <style>
         /* Reset */
@@ -103,6 +103,13 @@
             background-color: #27ae60;
         }
 
+        #message {
+            margin-top: 10px;
+            font-size: 1.2em;
+            text-align: center;
+            color: #e74c3c;
+        }
+
         footer {
             padding: 20px;
             text-align: center;
@@ -173,19 +180,17 @@
             <input type="text" id="englishInput" placeholder="영어 단어를 입력하세요" onkeypress="handleKeyPress(event)">
         </div>
 
-        <div id="imageContainer">
-            <img id="wordImage" src="" alt="단어 이미지" style="display: none; max-width: 100%; border-radius: 12px; box-shadow: 0 5px 10px rgba(0, 0, 0, 0.1);">
-        </div>
+        <!-- 메시지를 제출 버튼 위로 이동 -->
+        <p id="message"></p>
 
-        <button id="listenButton" onclick="playWordAudio()">음성 듣기</button>
+        <!-- 제출, 다음으로 넘기기, 음성 듣기 순서로 변경 -->
         <button id="submitButton" onclick="checkAnswer()">제출</button>
         <button id="skipButton" class="next-btn" onclick="skipWord()">다음으로 넘기기</button>
+        <button id="listenButton" onclick="playWordAudio()">음성 듣기</button>
 
         <div class="progress-bar">
             <div class="progress-bar-fill" id="progressBar"></div>
         </div>
-
-        <p id="message"></p>
 
         <button class="home-btn" onclick="goHome()">홈으로 돌아가기</button>
 
