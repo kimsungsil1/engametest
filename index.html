@@ -154,7 +154,7 @@
 
         <p id="message"></p>
 
-        <!-- 홈으로 돌아가는 버튼 추가 -->
+        <!-- 홈으로 돌아가는 버튼 -->
         <button class="home-btn" onclick="goHome()">홈으로 돌아가기</button>
     </div>
 
@@ -172,7 +172,6 @@
 
         document.getElementById('startButton').addEventListener('click', startGame); // 버튼 클릭 시 게임 시작
 
-        // Fisher-Yates 알고리즘을 이용해 배열을 섞는 함수
         function shuffleArray(array) {
             for (let i = array.length - 1; i > 0; i--) {
                 const j = Math.floor(Math.random() * (i + 1));
@@ -247,14 +246,18 @@
 
         function displayNextWord() {
             if (currentWordIndex < correctWords.length) {
-                const
-[englishWord, koreanWord] = correctWords[currentWordIndex];
+                const [englishWord, koreanWord] = correctWords[currentWordIndex];
                 document.getElementById('koreanWord').textContent = koreanWord;
                 document.getElementById('englishInput').value = '';
                 document.getElementById('message').textContent = '';
                 document.getElementById('englishInput').focus();
                 correctAnswerGiven = false; // 새로운 문제로 넘어갈 때 정답 여부 리셋
                 startTimer(); // 타이머 시작
+
+                // 영어 단어 발음 재생
+                const utterance = new SpeechSynthesisUtterance(englishWord);
+                utterance.lang = 'en-US';  // 영어 (미국식) 설정
+                speechSynthesis.speak(utterance); // 단어를 발음
             } else {
                 document.getElementById('koreanWord').textContent = '축하합니다! 모든 단어를 맞추셨습니다!';
                 document.getElementById('englishInput').style.display = 'none';
