@@ -145,6 +145,9 @@
             <input type="text" id="englishInput" placeholder="영어 단어를 입력하세요" onkeypress="handleKeyPress(event)">
         </div>
 
+        <!-- 음성 듣기 버튼 추가 -->
+        <button id="listenButton" onclick="playWordAudio()">음성 듣기</button>
+
         <button onclick="checkAnswer()">제출</button>
         <button class="next-btn" onclick="skipWord()">다음으로 넘기기</button>
 
@@ -166,16 +169,17 @@
         let correctWords = [];
         let currentWordIndex = 0;
         let score = 0;
-        let correctAnswerGiven = false; // 정답을 입력했는지 여부
-        let timeLeft = 30; // 초기 시간
-        let timer; // 타이머 변수
+        let correctAnswerGiven = false;
+        let timeLeft = 30;
+        let timer;
+        let currentEnglishWord = "";  // 현재 단어를 저장할 변수
 
-        document.getElementById('startButton').addEventListener('click', startGame); // 버튼 클릭 시 게임 시작
+        document.getElementById('startButton').addEventListener('click', startGame);
 
         function shuffleArray(array) {
             for (let i = array.length - 1; i > 0; i--) {
                 const j = Math.floor(Math.random() * (i + 1));
-                [array[i], array[j]] = [array[j], array[i]]; // 요소 위치를 서로 바꿈
+                [array[i], array[j]] = [array[j], array[i]];
             }
             return array;
         }
@@ -214,7 +218,7 @@
                     const sheetName = workbook.SheetNames[0];
                     const sheet = workbook.Sheets[sheetName];
                     const jsonData = XLSX.utils.sheet_to_json(sheet, { header: 1 });
-                    correctWords = shuffleArray(jsonData.slice(1)); // 배열을 섞음
+                    correctWords = shuffleArray(jsonData.slice(1));
                     currentWordIndex = 0;
                     score = 0;
                     correctAnswerGiven = false;
@@ -230,40 +234,45 @@
         }
 
         function startTimer() {
-            timeLeft = 30; // 매 문제마다 30초로 리셋
+            timeLeft = 30;
             document.getElementById('timerDisplay').textContent = `남은 시간: ${timeLeft}초`;
-            clearInterval(timer); // 기존 타이머가 있을 경우 초기화
+            clearInterval(timer);
             timer = setInterval(() => {
                 timeLeft--;
                 document.getElementById('timerDisplay').textContent = `남은 시간: ${timeLeft}초`;
 
                 if (timeLeft <= 0) {
-                    clearInterval(timer); // 시간이 다 되면 타이머를 정지하고 다음 문제로 이동
-                    skipWord(); // 자동으로 다음 문제로 넘기기
+                    clearInterval(timer);
+                    skipWord();
                 }
-            }, 1000); // 1초마다 감소
+            }, 1000);
         }
 
         function displayNextWord() {
             if (currentWordIndex < correctWords.length) {
                 const [englishWord, koreanWord] = correctWords[currentWordIndex];
+                currentEnglishWord = englishWord;  // 현재 단어 저장
                 document.getElementById('koreanWord').textContent = koreanWord;
                 document.getElementById('englishInput').value = '';
                 document.getElementById('message').textContent = '';
                 document.getElementById('englishInput').focus();
-                correctAnswerGiven = false; // 새로운 문제로 넘어갈 때 정답 여부 리셋
-                startTimer(); // 타이머 시작
+                correctAnswerGiven = false;
+                startTimer();
 
-                // 영어 단어 발음 재생
-                const utterance = new SpeechSynthesisUtterance(englishWord);
-                utterance.lang = 'en-US';  // 영어 (미국식) 설정
-                speechSynthesis.speak(utterance); // 단어를 발음
+                playWordAudio();  // 단어 발음 재생
             } else {
                 document.getElementById('koreanWord').textContent = '축하합니다! 모든 단어를 맞추셨습니다!';
                 document.getElementById('englishInput').style.display = 'none';
                 document.querySelector('button').style.display = 'none';
-                clearInterval(timer); // 게임이 끝나면 타이머 정지
+                clearInterval(timer);
             }
+        }
+
+        // 단어 음성 재생 함수
+        function playWordAudio() {
+            const utterance = new SpeechSynthesisUtterance(currentEnglishWord);
+            utterance.lang = 'en-US';
+            speechSynthesis.speak(utterance);
         }
 
         function checkAnswer() {
@@ -272,69 +281,63 @@
 
             if (userAnswer === englishWord.toLowerCase()) {
                 document.getElementById('message').textContent = "정답입니다!";
-                document.getElementById('message').style.color = "#2ecc71"; // 정답일 때 초록색
-                score += 10; // 정답 맞추면 10점 추가
+                document.getElementById('message').style.color = "#2ecc71";
+                score += 10;
                 document.getElementById('scoreDisplay').textContent = `점수: ${score}`;
                 currentWordIndex++;
                 setTimeout(() => {
                     displayNextWord();
                     updateProgressBar();
-                }, 1000); // 1초 후 다음 단어로 넘어감
+                }, 1000);
             } else if (!correctAnswerGiven) {
-                // 처음 오답을 입력했을 때, 정답을 알려주고 다시 입력하게 함
                 document.getElementById('message').textContent = `오답입니다. 정답은 '${englishWord}' 입니다. 다시 입력하세요.`;
-                document.getElementById('message').style.color = "#e74c3c"; // 오답일 때 빨간색
-                correctAnswerGiven = true; // 정답이 한 번 표시되면 다시 정답을 입력할 수 있도록 설정
+                document.getElementById('message').style.color = "#e74c3c";
+                correctAnswerGiven = true;
             } else if (correctAnswerGiven && userAnswer === englishWord.toLowerCase()) {
-                // 정답을 보고 정확히 입력했을 때
                 document.getElementById('message').textContent = "정확하게 입력하셨습니다!";
-                document.getElementById('message').style.color = "#2ecc71"; // 정답일 때 초록색
+                document.getElementById('message').style.color = "#2ecc71";
                 currentWordIndex++;
-                score += 5; // 정답 입력 시 점수를 조금 더 추가
+                score += 5;
                 document.getElementById('scoreDisplay').textContent = `점수: ${score}`;
                 setTimeout(() => {
                     displayNextWord();
                     updateProgressBar();
-                }, 1000); // 1초 후 다음 단어로 넘어감
+                }, 1000);
             } else {
                 document.getElementById('message').textContent = "정확하게 입력하세요!";
-                document.getElementById('message').style.color = "#e74c3c"; // 틀렸을 때 빨간색
+                document.getElementById('message').style.color = "#e74c3c";
             }
         }
 
         function skipWord() {
             const [englishWord] = correctWords[currentWordIndex];
             document.getElementById('message').textContent = `정답은 '${englishWord}' 입니다. 다음 문제로 넘어갑니다.`;
-            document.getElementById('message').style.color = "#e74c3c"; // 틀렸을 때 빨간색
+            document.getElementById('message').style.color = "#e74c3c";
             currentWordIndex++;
             setTimeout(() => {
                 displayNextWord();
                 updateProgressBar();
-            }, 2000); // 2초 후 다음 문제로 넘어감
+            }, 2000);
         }
 
-        // 홈으로 돌아가는 함수
         function goHome() {
             document.getElementById('gameContainer').style.display = 'none';
             document.getElementById('mainMenu').style.display = 'block';
-            clearInterval(timer); // 홈으로 돌아갈 때 타이머 정지
+            clearInterval(timer);
         }
 
-        // 프로그레스 바 업데이트 함수
         function updateProgressBar() {
             const progressBar = document.getElementById('progressBar');
             const progress = ((currentWordIndex / correctWords.length) * 100).toFixed(2);
             progressBar.style.width = `${progress}%`;
         }
 
-        // Enter 키로 정답 제출
         function handleKeyPress(event) {
             if (event.key === "Enter") {
                 checkAnswer();
             }
         }
 
-        // 처음 시작할 때 첫 화면 로드
         window.onload = () => {
             document.getElementById('mainMenu').style.display = 'block';
             document.getElementById('gameContainer').style.display = 'none';
