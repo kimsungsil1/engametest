@@ -86,6 +86,11 @@
             font-weight: bold;
         }
 
+        #viewPdfButton {
+            background-color: #2c3e50;
+            font-weight: bold;
+        }
+
         #listenButton {
             background-color: #e74c3c;
         }
@@ -156,10 +161,10 @@
             margin: 20px auto;
         }
 
-        iframe {
+        canvas {
             width: 100%;
-            height: 600px;
-            border: none;
+            border: 1px solid black;
+            margin-bottom: 10px;
         }
 
         .nav-buttons {
@@ -227,17 +232,20 @@
 
     <div class="pdf-container" id="pdfContainer" style="display: none;">
         <h1>교재 보기</h1>
-        <iframe src="abcbook.pdf" type="application/pdf"></iframe>
+        <canvas id="pdfCanvas"></canvas>
         <div class="nav-buttons">
-            <button onclick="goBackToMenu()">메뉴로 돌아가기</button>
-            <button onclick="goHome()">홈으로 돌아가기</button>
+            <button onclick="prevPage()">이전 페이지</button>
+            <button onclick="nextPage()">다음 페이지</button>
         </div>
+        <button onclick="goBackToMenu()">메뉴로 돌아가기</button>
+        <button onclick="goHome()">홈으로 돌아가기</button>
     </div>
 
     <footer>
         제작: 김성실 | 문의: <a href="mailto:sungsil.kim@lcnine.kr">sungsil.kim@lcnine.kr</a>
     </footer>
 
+    <script src="https://mozilla.github.io/pdf.js/build/pdf.js"></script>
     <script>
         let correctWords = [];
         let currentWordIndex = 0;
@@ -246,6 +254,10 @@
         let timeLeft = 30;
         let timer;
         let currentEnglishWord = ""; 
+        let pdfDoc = null,
+            pageNum = 1,
+            pageRendering = false,
+            pageNumPending = null;
 
         document.getElementById('startButton').addEventListener('click', startGame);
         document.getElementById('viewPdfButton').addEventListener('click', viewPdf);
@@ -417,6 +429,56 @@
         function viewPdf() {
             document.getElementById('mainMenu').style.display = 'none';
             document.getElementById('pdfContainer').style.display = 'block';
+
+            // PDF.js를 사용하여 PDF 파일 로드
+            const url = 'abcbook.pdf'; // PDF 파일 경로
+            pdfjsLib.getDocument(url).promise.then(pdfDoc_ => {
+                pdfDoc = pdfDoc_;
+                renderPage(pageNum);
+            });
+        }
+
+        function renderPage(num) {
+            pageRendering = true;
+
+            // 페이지 가져오기
+            pdfDoc.getPage(num).then(page => {
+                const viewport = page.getViewport({ scale: 1.5 });
+                const canvas = document.getElementById('pdfCanvas');
+                const ctx = canvas.getContext('2d');
+                canvas.height = viewport.height;
+                canvas.width = viewport.width;
+
+                // 페이지 렌더링
+                const renderContext = {
+                    canvasContext: ctx,
+                    viewport: viewport
+                };
+                page.render(renderContext).promise.then(() => {
+                    pageRendering = false;
+
+                    if (pageNumPending !== null) {
+                        renderPage(pageNumPending);
+                        pageNumPending = null;
+                    }
+                });
+            });
+        }
+
+        function prevPage() {
+            if (pageNum <= 1) {
+                return;
+            }
+            pageNum--;
+            renderPage(pageNum);
+        }
+
+        function nextPage() {
+            if (pageNum >= pdfDoc.numPages) {
+                return;
+            }
+            pageNum++;
+            renderPage(pageNum);
         }
 
         function goBackToMenu() {
