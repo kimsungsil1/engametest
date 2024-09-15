@@ -4,7 +4,6 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Word Master: Vocabulary Challenge</title>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.16.2/xlsx.full.min.js"></script>
     <style>
         body {
             font-family: 'Roboto', sans-serif;
@@ -82,6 +81,14 @@
             font-size: 1.2em;
         }
 
+        #imageContainer img {
+            max-width: 100%;
+            height: auto;
+            margin-top: 20px;
+            border-radius: 12px;
+            box-shadow: 0 10px 20px rgba(0, 0, 0, 0.1);
+        }
+
         .progress-bar {
             width: 100%;
             background-color: #e0e0e0;
@@ -145,9 +152,12 @@
             <input type="text" id="englishInput" placeholder="영어 단어를 입력하세요" onkeypress="handleKeyPress(event)">
         </div>
 
-        <!-- 음성 듣기 버튼 추가 -->
-        <button id="listenButton" onclick="playWordAudio()">음성 듣기</button>
+        <!-- 이미지 컨테이너 추가 -->
+        <div id="imageContainer">
+            <img id="wordImage" src="" alt="단어 이미지" style="display: none;">
+        </div>
 
+        <button id="listenButton" onclick="playWordAudio()">음성 듣기</button>
         <button onclick="checkAnswer()">제출</button>
         <button class="next-btn" onclick="skipWord()">다음으로 넘기기</button>
 
@@ -172,7 +182,7 @@
         let correctAnswerGiven = false;
         let timeLeft = 30;
         let timer;
-        let currentEnglishWord = "";  // 현재 단어를 저장할 변수
+        let currentEnglishWord = ""; 
 
         document.getElementById('startButton').addEventListener('click', startGame);
 
@@ -258,8 +268,6 @@
                 document.getElementById('englishInput').focus();
                 correctAnswerGiven = false;
                 startTimer();
-
-                playWordAudio();  // 단어 발음 재생
             } else {
                 document.getElementById('koreanWord').textContent = '축하합니다! 모든 단어를 맞추셨습니다!';
                 document.getElementById('englishInput').style.display = 'none';
@@ -268,7 +276,7 @@
             }
         }
 
-        // 단어 음성 재생 함수
+        // 단어 음성 재생 함수 - 버튼을 눌러야 음성 재생
         function playWordAudio() {
             const utterance = new SpeechSynthesisUtterance(currentEnglishWord);
             utterance.lang = 'en-US';
