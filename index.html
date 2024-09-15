@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Word Master: Vocabulary Challenge</title>
+    <title>Word Master: 영어 어휘 도전</title>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.16.9/xlsx.full.min.js"></script>
     <style>
         /* Reset */
@@ -34,6 +34,18 @@
             text-align: center;
         }
 
+        h2 {
+            font-size: 1.8rem;
+            color: #2c3e50;
+            margin-bottom: 15px;
+        }
+
+        p {
+            font-size: 1.2rem;
+            margin-bottom: 15px;
+            line-height: 1.6;
+        }
+
         .container {
             max-width: 400px;
             width: 100%;
@@ -45,6 +57,22 @@
             display: flex;
             flex-direction: column;
             align-items: center;
+        }
+
+        .feature-section, .learning-effect {
+            text-align: center;
+            margin-bottom: 20px;
+        }
+
+        ul {
+            list-style: none;
+            padding-left: 0;
+            margin-bottom: 20px;
+        }
+
+        ul li {
+            font-size: 1.1rem;
+            margin-bottom: 10px;
         }
 
         select, input {
@@ -80,7 +108,6 @@
             transform: translateY(-2px);
         }
 
-        /* 게임 시작 버튼에 검은색 적용 */
         #startButton {
             background-color: #000; /* 진한 검은색 */
             color: white; /* 흰색 텍스트 */
@@ -156,7 +183,8 @@
 <body>
 
     <div class="container" id="mainMenu">
-        <h1>Word Master: Vocabulary Challenge</h1>
+        <h1>Word Master: 영어 어휘 도전</h1>
+        <p>재미와 도전을 통해 영어 어휘를 정복하세요</p>
 
         <p>레벨을 선택하세요:</p>
         <select id="levelSelect">
@@ -166,6 +194,23 @@
         </select>
 
         <button id="startButton">게임 시작</button>
+
+        <div class="feature-section">
+            <h2>이 게임이 제공하는 혜택</h2>
+            <ul>
+                <li><strong>재미를 통한 학습</strong>: 재미있고 도전적인 퀴즈를 풀며 어휘력을 키우세요!</li>
+                <li><strong>즉각적인 피드백</strong>: 정답을 맞출 때마다 즉각적으로 피드백을 받아보세요. 실수를 통해 더 빠르게 학습할 수 있습니다.</li>
+                <li><strong>맞춤형 난이도</strong>: 초급부터 고급까지, 자신의 수준에 맞는 난이도를 선택하고 학습하세요.</li>
+                <li><strong>진행 상황 추적</strong>: 게임을 진행하면서 실시간으로 점수와 진척도를 확인할 수 있습니다.</li>
+            </ul>
+        </div>
+
+        <div class="learning-effect">
+            <h2>이 게임을 통해 얻을 수 있는 효과</h2>
+            <p><strong>어휘력 확장</strong>: 다양한 카테고리의 새로운 단어와 구문을 학습하며 어휘력을 확장하세요.</p>
+            <p><strong>실시간 학습</strong>: 빠른 생각과 실시간 학습을 통해 기억력을 강화하고 즉시 적용하세요.</p>
+            <p><strong>필수 어휘 습득</strong>: 일상 회화부터 학업용 어휘까지, 중요한 영어 단어들을 완벽히 익히세요.</p>
+        </div>
     </div>
 
     <div class="container" id="gameContainer" style="display:none;">
