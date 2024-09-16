@@ -398,7 +398,13 @@
                 document.getElementById('englishWord').textContent = englishWord;
 
                 // 무작위로 3개의 선택지 생성
-                const options = [koreanWord, '달걀', '의자'];
+                let options = [koreanWord];
+                while (options.length < 3) {
+                    const randomWord = correctWords[Math.floor(Math.random() * correctWords.length)][1];
+                    if (!options.includes(randomWord)) {
+                        options.push(randomWord);
+                    }
+                }
                 shuffleArray(options);
 
                 document.getElementById('option1').textContent = options[0];
