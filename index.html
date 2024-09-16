@@ -459,7 +459,7 @@
                 document.getElementById('englishInput').style.borderColor = "#3498db"; // 초기화
                 document.getElementById('englishInput').focus();
                 correctAnswerGiven = false;
-                startTimer();
+                startTimer(); // 새로운 문제 시작 시 타이머 다시 시작
             } else {
                 document.getElementById('koreanWord').textContent = '축하합니다! 모든 단어를 맞추셨습니다!';
                 document.getElementById('englishInput').style.display = 'none';
@@ -488,7 +488,7 @@
                 document.getElementById('option3').textContent = options[2];
 
                 correctAnswerGiven = false;
-                startTimer2();
+                startTimer2(); // 새로운 문제 시작 시 타이머 다시 시작
             } else {
                 document.getElementById('englishWord').textContent = '축하합니다! 모든 단어를 맞추셨습니다!';
                 document.getElementById('optionsContainer').style.display = 'none';
@@ -553,8 +553,12 @@
         }
 
         function startTimer() {
+            // 각 문제 시작 시, timeLeft를 초기화
+            const timeLimitInput = document.getElementById('timeLimit').value;
+            timeLeft = timeLimitInput ? parseInt(timeLimitInput) : 30; // 시간 초기화
+            
             document.getElementById('timerDisplay').textContent = `남은 시간: ${timeLeft}초`;
-            clearInterval(timer);
+            clearInterval(timer); // 기존 타이머 클리어
             timer = setInterval(() => {
                 timeLeft--;
                 document.getElementById('timerDisplay').textContent = `남은 시간: ${timeLeft}초`;
@@ -566,13 +570,17 @@
                 }
 
                 if (timeLeft <= 0) {
-                    clearInterval(timer);
-                    skipWord();
+                    clearInterval(timer); // 타이머 중지
+                    skipWord(); // 시간이 끝나면 다음 문제로 넘어감
                 }
             }, 1000);
         }
 
         function startTimer2() {
+            // 두 번째 모드 타이머 초기화
+            const timeLimitInput = document.getElementById('timeLimit').value;
+            timeLeft = timeLimitInput ? parseInt(timeLimitInput) : 30; // 시간 초기화
+            
             document.getElementById('timerDisplay2').textContent = `남은 시간: ${timeLeft}초`;
             clearInterval(timer);
             timer = setInterval(() => {
@@ -581,7 +589,7 @@
 
                 if (timeLeft <= 0) {
                     clearInterval(timer);
-                    skipWord();
+                    skipWord(); // 시간이 끝나면 다음 문제로 넘어감
                 }
             }, 1000);
         }
