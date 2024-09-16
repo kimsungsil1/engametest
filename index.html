@@ -219,25 +219,6 @@
             font-size: 1.5rem;
         }
 
-        /* 경험치 게이지 스타일 */
-        .exp-bar {
-            width: 100%;
-            background-color: #e0e0e0;
-            border-radius: 25px;
-            height: 25px;
-            overflow: hidden;
-            margin-top: 10px;
-            margin-bottom: 10px;
-        }
-
-        .exp-bar-fill {
-            height: 100%;
-            width: 0;
-            background-color: #9b59b6;
-            border-radius: 25px;
-            transition: width 0.5s ease;
-        }
-
         /* 모바일 화면에서의 최적화 */
         @media (max-width: 600px) {
             body {
@@ -302,11 +283,6 @@
 
         <div id="questionCounter">0 / 0</div>
 
-        <!-- 경험치 게이지 -->
-        <div class="exp-bar">
-            <div class="exp-bar-fill" id="expBar"></div>
-        </div>
-
         <button class="home-btn" onclick="goHome()">홈으로 돌아가기</button>
 
         <!-- 정답 소리 추가 -->
@@ -338,11 +314,6 @@
         </div>
 
         <div id="questionCounter2">0 / 0</div>
-
-        <!-- 경험치 게이지 -->
-        <div class="exp-bar">
-            <div class="exp-bar-fill" id="expBar2"></div>
-        </div>
 
         <button class="home-btn" onclick="goHome()">홈으로 돌아가기</button>
 
@@ -406,10 +377,6 @@
             pageNumPending = null;
 
         let gameMode = 1; // 1: 한글보고 영어입력, 2: 영어보고 한글선택
-
-        // 경험치 관련 변수
-        let exp = 0;
-        let expNeeded = 100;
 
         // CEFR 테스트 관련 변수
         let cefrQuestions = [];
@@ -520,19 +487,15 @@
                     currentWordIndex = 0;
                     score = 0;
                     correctAnswerGiven = false;
-                    exp = 0;
-                    expNeeded = 100;
                     if (gameMode === 1) {
                         document.getElementById('scoreDisplay').textContent = `점수: ${score}`;
                         document.getElementById('questionCounter').textContent = `0 / ${correctWords.length}`;
                         updateProgressBar();
-                        updateExpBar();
                         displayNextWord();
                     } else {
                         document.getElementById('scoreDisplay2').textContent = `점수: ${score}`;
                         document.getElementById('questionCounter2').textContent = `0 / ${correctWords.length}`;
                         updateProgressBar2();
-                        updateExpBar2();
                         displayNextWord2();
                     }
                 })
@@ -614,11 +577,9 @@
                 document.getElementById('scoreDisplay').textContent = `점수: ${score}`;
                 document.getElementById('correctSound').play();
                 currentWordIndex++;
-                gainExp(20); // 경험치 획득
                 setTimeout(() => {
                     displayNextWord();
                     updateProgressBar();
-                    updateExpBar();
                 }, 1000);
             } else if (!correctAnswerGiven) {
                 document.getElementById('message').textContent = `오답입니다. 정답은 '${englishWord}' 입니다. 다시 입력하세요.`;
@@ -632,11 +593,9 @@
                 currentWordIndex++;
                 score += 5;
                 document.getElementById('scoreDisplay').textContent = `점수: ${score}`;
-                gainExp(10); // 경험치 획득
                 setTimeout(() => {
                     displayNextWord();
                     updateProgressBar();
-                    updateExpBar();
                 }, 1000);
             } else {
                 document.getElementById('message').textContent = "정확하게 입력하세요!";
@@ -653,11 +612,9 @@
                 score += 10;
                 document.getElementById('scoreDisplay2').textContent = `점수: ${score}`;
                 currentWordIndex++;
-                gainExp(20); // 경험치 획득
                 setTimeout(() => {
                     displayNextWord2();
                     updateProgressBar2();
-                    updateExpBar2();
                 }, 1000);
             } else {
                 alert('오답입니다.');
@@ -708,35 +665,14 @@
 
         function updateProgressBar() {
             const progressBar = document.getElementById('progressBar');
-            const progress = ((currentWordIndex / correctWords.length) * 100).toFixed(2);
+            const progress = (Math.log(currentWordIndex + 1) / Math.log(correctWords.length + 1)) * 100;
             progressBar.style.width = `${progress}%`;
         }
 
         function updateProgressBar2() {
             const progressBar = document.getElementById('progressBar2');
-            const progress = ((currentWordIndex / correctWords.length) * 100).toFixed(2);
+            const progress = (Math.log(currentWordIndex + 1) / Math.log(correctWords.length + 1)) * 100;
             progressBar.style.width = `${progress}%`;
-        }
-
-        function updateExpBar() {
-            const expBar = document.getElementById('expBar');
-            const progress = ((exp / expNeeded) * 100).toFixed(2);
-            expBar.style.width = `${progress}%`;
-        }
-
-        function updateExpBar2() {
-            const expBar = document.getElementById('expBar2');
-            const progress = ((exp / expNeeded) * 100).toFixed(2);
-            expBar.style.width = `${progress}%`;
-        }
-
-        function gainExp(amount) {
-            exp += amount;
-            if (exp >= expNeeded) {
-                exp = exp - expNeeded;
-                expNeeded = expNeeded * 1.5; // 레벨업 시 필요한 경험치 증가
-                alert('레벨 업! 더 많은 경험치가 필요합니다.');
-            }
         }
 
         function goHome() {
@@ -843,13 +779,11 @@
                 setTimeout(() => {
                     displayNextWord();
                     updateProgressBar();
-                    updateExpBar();
                 }, 2000);
             } else {
                 setTimeout(() => {
                     displayNextWord2();
                     updateProgressBar2();
-                    updateExpBar2();
                 }, 2000);
             }
         }
