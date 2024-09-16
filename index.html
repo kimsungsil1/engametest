@@ -416,6 +416,36 @@
         let cefrCurrentIndex = 0;
         let cefrScore = 0;
 
+        // CEFR 테스트 질문 데이터 (직접 포함)
+        const cefrTestQuestions = [
+            {
+                "question": "What is the capital of France?",
+                "options": ["Paris", "Berlin", "Madrid", "Rome"],
+                "answer": "Paris"
+            },
+            {
+                "question": "Choose the correct form: I _____ to the store yesterday.",
+                "options": ["go", "went", "gone", "going"],
+                "answer": "went"
+            },
+            {
+                "question": "Which word is an adjective?",
+                "options": ["Quickly", "Beauty", "Beautiful", "Run"],
+                "answer": "Beautiful"
+            },
+            {
+                "question": "Fill in the blank: She has been working here _____ 2010.",
+                "options": ["for", "since", "at", "in"],
+                "answer": "since"
+            },
+            {
+                "question": "Which is a synonym of 'begin'?",
+                "options": ["End", "Start", "Finish", "Close"],
+                "answer": "Start"
+            }
+            // 필요한 만큼 추가 질문을 여기에 추가하세요.
+        ];
+
         // 게임 시작 버튼에 대한 이벤트 리스너
         document.getElementById('startButton').addEventListener('click', function() {
             gameMode = 1;
@@ -832,19 +862,11 @@
         }
 
         function loadCEFRQuestions() {
-            fetch('cefr_test_questions.json')
-                .then(response => response.json())
-                .then(data => {
-                    cefrQuestions = shuffleArray(data);
-                    cefrCurrentIndex = 0;
-                    cefrScore = 0;
-                    displayNextCEFRQuestion();
-                })
-                .catch(error => {
-                    alert('CEFR 테스트를 불러오는 중 오류가 발생했습니다: ' + error.message);
-                    document.getElementById('mainMenu').style.display = 'block';
-                    document.getElementById('cefrTestContainer').style.display = 'none';
-                });
+            // cefrTestQuestions 배열을 사용하여 질문 로드
+            cefrQuestions = shuffleArray(cefrTestQuestions);
+            cefrCurrentIndex = 0;
+            cefrScore = 0;
+            displayNextCEFRQuestion();
         }
 
         function displayNextCEFRQuestion() {
