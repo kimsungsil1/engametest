@@ -106,6 +106,10 @@
             font-weight: bold;
         }
 
+        #listenButton {
+            background-color: #e74c3c;
+        }
+
         footer {
             padding: 20px;
             text-align: center;
@@ -169,6 +173,52 @@
             background-color: #ecf0f1;
         }
 
+        .pdf-container {
+            width: 100%;
+            max-width: 800px;
+            margin: 20px auto;
+            text-align: center;
+        }
+
+        canvas {
+            width: 100%;
+            border: 1px solid black;
+            margin-bottom: 10px;
+        }
+
+        .nav-buttons {
+            display: flex;
+            justify-content: space-between;
+            width: 100%;
+            max-width: 800px;
+            margin: 10px auto;
+        }
+
+        .nav-buttons button {
+            padding: 10px 20px;
+            font-size: 1.1rem;
+        }
+
+        .nav-input {
+            margin-top: 20px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .nav-input input {
+            width: 100px;
+            padding: 15px;
+            font-size: 1.5rem;
+            text-align: center;
+            margin-right: 15px;
+        }
+
+        .nav-input button {
+            padding: 15px 25px;
+            font-size: 1.5rem;
+        }
+
     </style>
 </head>
 <body>
@@ -192,6 +242,7 @@
         <button id="viewPdfButton">교재 보기</button>
     </div>
 
+    <!-- 첫 번째 게임 모드 (한글보고 영어입력) -->
     <div class="container" id="gameContainer1" style="display:none;">
         <div class="status-bar">
             <div id="scoreDisplay">점수: 0</div>
@@ -207,6 +258,7 @@
 
         <button id="submitButton" onclick="checkAnswer()">제출</button>
         <button id="skipButton" class="next-btn" onclick="skipWord()">다음으로 넘기기</button>
+        <button id="listenButton" onclick="playWordAudio()">음성 듣기</button>
 
         <div class="progress-bar">
             <div class="progress-bar-fill" id="progressBar"></div>
@@ -221,6 +273,7 @@
         </audio>
     </div>
 
+    <!-- 두 번째 게임 모드 (영어보고 한글선택) -->
     <div class="container" id="gameContainer2" style="display:none;">
         <div class="status-bar">
             <div id="scoreDisplay2">점수: 0</div>
@@ -250,6 +303,21 @@
         </audio>
     </div>
 
+    <!-- 교재 보기 -->
+    <div class="pdf-container" id="pdfContainer" style="display: none;">
+        <h1>교재 보기</h1>
+        <canvas id="pdfCanvas"></canvas>
+        <div class="nav-buttons">
+            <button id="prevButton" onclick="prevPage()">이전 페이지</button>
+            <button id="nextButton" onclick="nextPage()">다음 페이지</button>
+        </div>
+        <div class="nav-input">
+            <input type="number" id="pageNumberInput" placeholder="페이지" min="1">
+            <button onclick="goToPage()">이동</button>
+        </div>
+        <button onclick="goHome()">홈으로 돌아가기</button>
+    </div>
+
     <footer>
         제작: 김성실 | 문의: <a href="mailto:sungsil.kim@lcnine.kr">sungsil.kim@lcnine.kr</a>
     </footer>
@@ -262,6 +330,10 @@
         let timeLeft = 30;
         let timer;
         let currentEnglishWord = ""; 
+        let pdfDoc = null,
+            pageNum = 1,
+            pageRendering = false,
+            pageNumPending = null;
 
         let gameMode = 1; // 1: 한글보고 영어입력, 2: 영어보고 한글선택
 
@@ -276,10 +348,6 @@
             gameMode = 2;
             startGame();
         });
-
-        // 모바일 대응: 클릭 이벤트를 확실히 처리하기 위해 touchstart 추가
-        document.getElementById('startButton').addEventListener('touchstart', startGame);
-        document.getElementById('startButton2').addEventListener('touchstart', startGame);
 
         // 교재 보기 버튼
         document.getElementById('viewPdfButton').addEventListener('click', viewPdf);
@@ -354,6 +422,13 @@
                     document.getElementById('gameContainer1').style.display = 'none';
                     document.getElementById('gameContainer2').style.display = 'none';
                 });
+        }
+
+        // 음성 듣기 기능
+        function playWordAudio() {
+            const utterance = new SpeechSynthesisUtterance(currentEnglishWord);
+            utterance.lang = 'en-US';
+            speechSynthesis.speak(utterance);
         }
 
         function displayNextWord() {
@@ -469,10 +544,90 @@
             clearInterval(timer);
         }
 
+        function viewPdf() {
+            document.getElementById('mainMenu').style.display = 'none';
+            document.getElementById('pdfContainer').style.display = 'block';
+
+            const url = 'abcbook.pdf'; // PDF 파일 경로
+
+            // PDF 파일 로드
+            pdfjsLib.getDocument(url).promise.then(function(pdfDoc_) {
+                pdfDoc = pdfDoc_;
+                renderPage(pageNum);
+            }).catch(function(error) {
+                alert('PDF 파일을 로드하는 중 오류가 발생했습니다: ' + error.message);
+                document.getElementById('mainMenu').style.display = 'block';
+                document.getElementById('pdfContainer').style.display = 'none';
+            });
+        }
+
+        // 페이지 렌더링 함수
+        function renderPage(num) {
+            pageRendering = true;
+
+            // 페이지 가져오기
+            pdfDoc.getPage(num).then(function(page) {
+                const scale = 1.5;
+                const viewport = page.getViewport({ scale: scale });
+                const canvas = document.getElementById('pdfCanvas');
+                const ctx = canvas.getContext('2d');
+                canvas.height = viewport.height;
+                canvas.width = viewport.width;
+
+                // 페이지 렌더링
+                const renderContext = {
+                    canvasContext: ctx,
+                    viewport: viewport
+                };
+                const renderTask = page.render(renderContext);
+
+                // 페이지 렌더링이 완료되면 처리
+                renderTask.promise.then(function() {
+                    pageRendering = false;
+
+                    if (pageNumPending !== null) {
+                        renderPage(pageNumPending);
+                        pageNumPending = null;
+                    }
+                });
+            });
+        }
+
+        // 이전 페이지 버튼 클릭
+        function prevPage() {
+            if (pageNum <= 1) {
+                return;
+            }
+            pageNum--;
+            renderPage(pageNum);
+        }
+
+        // 다음 페이지 버튼 클릭
+        function nextPage() {
+            if (pageNum >= pdfDoc.numPages) {
+                return;
+            }
+            pageNum++;
+            renderPage(pageNum);
+        }
+
+        // 페이지 번호 입력 후 이동
+        function goToPage() {
+            const pageNumberInput = document.getElementById('pageNumberInput').value;
+            const pageNumber = parseInt(pageNumberInput, 10);
+            if (pageNumber > 0 && pageNumber <= pdfDoc.numPages) {
+                pageNum = pageNumber;
+                renderPage(pageNum);
+            } else {
+                alert('유효한 페이지 번호를 입력하세요.');
+            }
+        }
+
         window.onload = () => {
             document.getElementById('mainMenu').style.display = 'block';
             document.getElementById('gameContainer1').style.display = 'none';
             document.getElementById('gameContainer2').style.display = 'none';
+            document.getElementById('pdfContainer').style.display = 'none';
         };
     </script>
 
