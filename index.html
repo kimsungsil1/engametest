@@ -94,85 +94,6 @@
             transform: translateY(-2px);
         }
 
-        #startButton {
-            font-weight: bold;
-        }
-
-        #startButton2 {
-            font-weight: bold;
-        }
-
-        #viewPdfButton {
-            font-weight: bold;
-        }
-
-        #listenButton {
-            background-color: #e74c3c;
-        }
-
-        footer {
-            padding: 20px;
-            text-align: center;
-            font-size: 0.9rem;
-            color: #7f8c8d;
-        }
-
-        footer a {
-            color: #3498db;
-            text-decoration: none;
-        }
-
-        footer a:hover {
-            text-decoration: underline;
-        }
-
-        .progress-bar {
-            width: 100%;
-            background-color: #e0e0e0;
-            border-radius: 25px;
-            height: 25px;
-            overflow: hidden;
-            margin-top: 20px;
-        }
-
-        .progress-bar-fill {
-            height: 100%;
-            width: 0;
-            background-color: #3498db;
-            border-radius: 25px;
-            transition: width 0.5s ease;
-        }
-
-        .status-bar {
-            display: flex;
-            justify-content: space-between;
-            width: 100%;
-            margin-bottom: 15px;
-            font-size: 1rem;
-        }
-
-        .word-container {
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-        }
-
-        .option {
-            margin-bottom: 10px;
-            padding: 15px;
-            background-color: #fff;
-            border: 2px solid #3498db;
-            border-radius: 8px;
-            width: 100%;
-            cursor: pointer;
-            text-align: center;
-            transition: background-color 0.3s ease;
-        }
-
-        .option:hover {
-            background-color: #ecf0f1;
-        }
-
         .pdf-container {
             width: 100%;
             max-width: 800px;
@@ -603,8 +524,7 @@
 
             // 페이지 가져오기
             pdfDoc.getPage(num).then(function(page) {
-                const scale = 1.5;
-                const viewport = page.getViewport({ scale: scale });
+                const viewport = page.getViewport({ scale: 0.8 }); // PDF 크기 줄이기
                 const canvas = document.getElementById('pdfCanvas');
                 const ctx = canvas.getContext('2d');
                 canvas.height = viewport.height;
