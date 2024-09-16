@@ -224,8 +224,10 @@
 
         <select id="levelSelect">
             <option value="A1">A1 - 초급</option>
-            <option value="A2">A2 - 중급</option>
-            <option value="B1">B1 - 고급</option>
+            <option value="A2">A2 - 초급</option>
+            <option value="B1">B1 - 초급</option>
+            <option value="B2">B2 - 중급</option>
+            <option value="C1">C1 - 고급</option>
         </select>
 
         <button id="startButton">게임 시작</button>
@@ -284,187 +286,12 @@
     </footer>
 
     <script>
-        let correctWords = [];
-        let currentWordIndex = 0;
-        let score = 0;
-        let correctAnswerGiven = false;
-        let timeLeft = 30;
-        let timer;
-        let currentEnglishWord = ""; 
         let pdfDoc = null,
             pageNum = 1,
             pageRendering = false,
             pageNumPending = null;
 
-        // 게임 시작 버튼에 대한 이벤트 리스너
-        document.getElementById('startButton').addEventListener('click', startGame);
-
-        // 모바일 대응: 클릭 이벤트를 확실히 처리하기 위해 touchstart 추가
-        document.getElementById('startButton').addEventListener('touchstart', startGame);
-
-        // 교재 보기 버튼
         document.getElementById('viewPdfButton').addEventListener('click', viewPdf);
-
-        function shuffleArray(array) {
-            for (let i = array.length - 1; i > 0; i--) {
-                const j = Math.floor(Math.random() * (i + 1));
-                [array[i], array[j]] = [array[j], array[i]];
-            }
-            return array;
-        }
-
-        function startGame() {
-            const level = document.getElementById('levelSelect').value;
-            if (level) {
-                document.getElementById('mainMenu').style.display = 'none';
-                document.getElementById('gameContainer').style.display = 'block';
-                loadWords(level);
-            } else {
-                alert("레벨을 선택해주세요!");
-            }
-        }
-
-        function loadWords(level) {
-            let fileName;
-
-            if (level === 'A1') {
-                fileName = 'A1WORD.xlsx';
-            } else if (level === 'A2') {
-                fileName = 'A2WORD.xlsx';
-            } else if (level === 'B1') {
-                fileName = 'B1WORD.xlsx';
-            }
-
-            fetch(fileName)
-                .then(response => {
-                    if (!response.ok) {
-                        throw new Error('파일을 불러오지 못했습니다.');
-                    }
-                    return response.arrayBuffer();
-                })
-                .then(data => {
-                    const workbook = XLSX.read(data, { type: 'array' });
-                    const sheetName = workbook.SheetNames[0];
-                    const sheet = workbook.Sheets[sheetName];
-                    const jsonData = XLSX.utils.sheet_to_json(sheet, { header: 1 });
-                    correctWords = shuffleArray(jsonData.slice(1));
-                    currentWordIndex = 0;
-                    score = 0;
-                    correctAnswerGiven = false;
-                    document.getElementById('scoreDisplay').textContent = `점수: ${score}`;
-                    updateProgressBar();
-                    displayNextWord();
-                })
-                .catch(error => {
-                    alert('단어 파일을 불러오는 중 오류가 발생했습니다: ' + error.message);
-                    document.getElementById('mainMenu').style.display = 'block';
-                    document.getElementById('gameContainer').style.display = 'none';
-                });
-        }
-
-        function startTimer() {
-            timeLeft = 30;
-            document.getElementById('timerDisplay').textContent = `남은 시간: ${timeLeft}초`;
-            clearInterval(timer);
-            timer = setInterval(() => {
-                timeLeft--;
-                document.getElementById('timerDisplay').textContent = `남은 시간: ${timeLeft}초`;
-
-                if (timeLeft <= 0) {
-                    clearInterval(timer);
-                    skipWord();
-                }
-            }, 1000);
-        }
-
-        function displayNextWord() {
-            if (currentWordIndex < correctWords.length) {
-                const [englishWord, koreanWord] = correctWords[currentWordIndex];
-                currentEnglishWord = englishWord;
-                document.getElementById('koreanWord').textContent = koreanWord;
-                document.getElementById('englishInput').value = '';
-                document.getElementById('message').textContent = '';
-                document.getElementById('englishInput').focus();
-                correctAnswerGiven = false;
-                startTimer();
-            } else {
-                document.getElementById('koreanWord').textContent = '축하합니다! 모든 단어를 맞추셨습니다!';
-                document.getElementById('englishInput').style.display = 'none';
-                document.querySelector('button').style.display = 'none';
-                clearInterval(timer);
-            }
-        }
-
-        function playWordAudio() {
-            const utterance = new SpeechSynthesisUtterance(currentEnglishWord);
-            utterance.lang = 'en-US';
-            speechSynthesis.speak(utterance);
-        }
-
-        function checkAnswer() {
-            const [englishWord] = correctWords[currentWordIndex];
-            const userAnswer = document.getElementById('englishInput').value.trim().toLowerCase();
-
-            if (userAnswer === englishWord.toLowerCase()) {
-                document.getElementById('message').textContent = "정답입니다!";
-                document.getElementById('message').style.color = "#2ecc71";
-                score += 10;
-                document.getElementById('scoreDisplay').textContent = `점수: ${score}`;
-                document.getElementById('correctSound').play();
-                currentWordIndex++;
-                setTimeout(() => {
-                    displayNextWord();
-                    updateProgressBar();
-                }, 1000);
-            } else if (!correctAnswerGiven) {
-                document.getElementById('message').textContent = `오답입니다. 정답은 '${englishWord}' 입니다. 다시 입력하세요.`;
-                document.getElementById('message').style.color = "#e74c3c";
-                correctAnswerGiven = true;
-            } else if (correctAnswerGiven && userAnswer === englishWord.toLowerCase()) {
-                document.getElementById('message').textContent = "정확하게 입력하셨습니다!";
-                document.getElementById('message').style.color = "#2ecc71";
-                currentWordIndex++;
-                score += 5;
-                document.getElementById('scoreDisplay').textContent = `점수: ${score}`;
-                setTimeout(() => {
-                    displayNextWord();
-                    updateProgressBar();
-                }, 1000);
-            } else {
-                document.getElementById('message').textContent = "정확하게 입력하세요!";
-                document.getElementById('message').style.color = "#e74c3c";
-            }
-        }
-
-        function skipWord() {
-            const [englishWord] = correctWords[currentWordIndex];
-            document.getElementById('message').textContent = `정답은 '${englishWord}' 입니다. 다음 문제로 넘어갑니다.`;
-            document.getElementById('message').style.color = "#e74c3c";
-            currentWordIndex++;
-            setTimeout(() => {
-                displayNextWord();
-                updateProgressBar();
-            }, 2000);
-        }
-
-        function goHome() {
-            document.getElementById('gameContainer').style.display = 'none';
-            document.getElementById('pdfContainer').style.display = 'none';
-            document.getElementById('mainMenu').style.display = 'block';
-            clearInterval(timer);
-        }
-
-        function updateProgressBar() {
-            const progressBar = document.getElementById('progressBar');
-            const progress = ((currentWordIndex / correctWords.length) * 100).toFixed(2);
-            progressBar.style.width = `${progress}%`;
-        }
-
-        function handleKeyPress(event) {
-            if (event.key === "Enter" || event.key === "Process") {
-                checkAnswer();
-            }
-        }
 
         function viewPdf() {
             document.getElementById('mainMenu').style.display = 'none';
@@ -529,9 +356,13 @@
             }
         }
 
+        function goHome() {
+            document.getElementById('pdfContainer').style.display = 'none';
+            document.getElementById('mainMenu').style.display = 'block';
+        }
+
         window.onload = () => {
             document.getElementById('mainMenu').style.display = 'block';
-            document.getElementById('gameContainer').style.display = 'none';
             document.getElementById('pdfContainer').style.display = 'none';
         };
     </script>
