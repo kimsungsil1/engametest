@@ -540,8 +540,9 @@
         function goHome() {
             document.getElementById('gameContainer1').style.display = 'none';
             document.getElementById('gameContainer2').style.display = 'none';
+            document.getElementById('pdfContainer').style.display = 'none'; // 교재 보기 화면 숨기기
             document.getElementById('mainMenu').style.display = 'block';
-            clearInterval(timer);
+            clearInterval(timer); // 타이머 중지
         }
 
         function viewPdf() {
