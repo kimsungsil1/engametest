@@ -175,13 +175,14 @@
 
         .pdf-container {
             width: 100%;
-            max-width: 800px;
+            max-width: 600px; /* 크기 조정 */
             margin: 20px auto;
             text-align: center;
         }
 
         canvas {
-            width: 100%;
+            width: 80%; /* 크기 조정 */
+            max-width: 500px; /* 최대 너비 설정 */
             border: 1px solid black;
             margin-bottom: 10px;
         }
@@ -221,6 +222,10 @@
 
         /* 모바일 화면에서의 최적화 */
         @media (max-width: 600px) {
+            canvas {
+                width: 100%; /* 작은 화면에서는 전체 너비 사용 */
+                max-width: none;
+            }
             body {
                 padding: 10px;
             }
@@ -707,7 +712,7 @@
 
             // 페이지 가져오기
             pdfDoc.getPage(num).then(function(page) {
-                const scale = 1.5;
+                const scale = 1.0; // 스케일 조정하여 크기 감소
                 const viewport = page.getViewport({ scale: scale });
                 const canvas = document.getElementById('pdfCanvas');
                 const ctx = canvas.getContext('2d');
