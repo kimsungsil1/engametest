@@ -633,13 +633,20 @@
 
         // 단어 넘기기
         function skipWord() {
+            const [englishWord, koreanWord] = correctWords[currentWordIndex];
+            document.getElementById('message').textContent = `정답은 '${englishWord}' 입니다.`;
             currentWordIndex++;
             if (gameMode === 1) {
-                displayNextWord();
+                setTimeout(() => {
+                    displayNextWord();
+                    updateProgressBar();
+                }, 2000);
             } else {
-                displayNextWord2();
+                setTimeout(() => {
+                    displayNextWord2();
+                    updateProgressBar2();
+                }, 2000);
             }
-            updateProgressBar();
         }
 
         window.onload = () => {
