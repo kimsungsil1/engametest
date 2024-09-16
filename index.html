@@ -477,6 +477,41 @@
             }
         }
 
+        function checkAnswer() {
+            const [englishWord] = correctWords[currentWordIndex];
+            const userAnswer = document.getElementById('englishInput').value.trim().toLowerCase();
+
+            if (userAnswer === englishWord.toLowerCase()) {
+                document.getElementById('message').textContent = "정답입니다!";
+                document.getElementById('message').style.color = "#2ecc71";
+                score += 10;
+                document.getElementById('scoreDisplay').textContent = `점수: ${score}`;
+                document.getElementById('correctSound').play();
+                currentWordIndex++;
+                setTimeout(() => {
+                    displayNextWord();
+                    updateProgressBar();
+                }, 1000);
+            } else if (!correctAnswerGiven) {
+                document.getElementById('message').textContent = `오답입니다. 정답은 '${englishWord}' 입니다. 다시 입력하세요.`;
+                document.getElementById('message').style.color = "#e74c3c";
+                correctAnswerGiven = true;
+            } else if (correctAnswerGiven && userAnswer === englishWord.toLowerCase()) {
+                document.getElementById('message').textContent = "정확하게 입력하셨습니다!";
+                document.getElementById('message').style.color = "#2ecc71";
+                currentWordIndex++;
+                score += 5;
+                document.getElementById('scoreDisplay').textContent = `점수: ${score}`;
+                setTimeout(() => {
+                    displayNextWord();
+                    updateProgressBar();
+                }, 1000);
+            } else {
+                document.getElementById('message').textContent = "정확하게 입력하세요!";
+                document.getElementById('message').style.color = "#e74c3c";
+            }
+        }
+
         function checkAnswer2(optionId) {
             const selectedOption = document.getElementById(optionId).textContent;
             const [englishWord, koreanWord] = correctWords[currentWordIndex];
@@ -626,7 +661,7 @@
 
         // 엔터키 입력 이벤트 처리
         function handleKeyPress(event) {
-            if (event.key === "Enter" || event.key === "Process") {
+            if (event.key === "Enter" || event.keyCode === 13) {
                 checkAnswer(); // 엔터키를 누르면 정답을 체크
             }
         }
