@@ -624,6 +624,24 @@
             }
         }
 
+        // 엔터키 입력 이벤트 처리
+        function handleKeyPress(event) {
+            if (event.key === "Enter" || event.key === "Process") {
+                checkAnswer(); // 엔터키를 누르면 정답을 체크
+            }
+        }
+
+        // 단어 넘기기
+        function skipWord() {
+            currentWordIndex++;
+            if (gameMode === 1) {
+                displayNextWord();
+            } else {
+                displayNextWord2();
+            }
+            updateProgressBar();
+        }
+
         window.onload = () => {
             document.getElementById('mainMenu').style.display = 'block';
             document.getElementById('gameContainer1').style.display = 'none';
