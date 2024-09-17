@@ -133,6 +133,8 @@
             background-color: #3498db;
             border-radius: 25px;
             transition: width 0.5s ease;
+            /* 기본으로 선형 애니메이션 설정 */
+            transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
         }
 
         .status-bar {
@@ -166,7 +168,7 @@
         }
 
         .pdf-container {
-            position: relative; /* Added for loading overlay positioning */
+            position: relative; /* 로딩 오버레이 위치 설정 */
             width: 100%;
             max-width: 600px; /* 크기 조정 */
             margin: 20px auto;
@@ -273,13 +275,16 @@
     <!-- 오디오 요소를 모든 게임 모드에서 접근 가능하도록 상단에 배치 -->
     <!-- 게임 시작(한글보고 영어입력) 모드의 정답 소리 -->
     <audio id="correctSound" preload="auto">
-        <!-- MP3 소스만 사용 -->
+        <!-- OGG 소스 -->
+        <source src="https://actions.google.com/sounds/v1/cartoon/ascending_boing.ogg" type="audio/ogg">
+        <!-- MP3 소스 (옵션) -->
         <source src="https://actions.google.com/sounds/v1/cartoon/ascending_boing.mp3" type="audio/mpeg">
         Your browser does not support the audio element.
     </audio>
 
     <!-- 게임 시작(영어보고 한글선택) 모드의 정답 소리 -->
     <audio id="correctSound2" preload="auto">
+        <source src="https://actions.google.com/sounds/v1/cartoon/wood_plank_flicks.ogg" type="audio/ogg">
         <source src="https://actions.google.com/sounds/v1/cartoon/wood_plank_flicks.mp3" type="audio/mpeg">
         Your browser does not support the audio element.
     </audio>
@@ -653,10 +658,12 @@
                     console.error("오디오 재생 실패:", error);
                 });
 
+                // 진행 바 업데이트 (정답일 때만)
+                updateProgressBar();
+
                 currentWordIndex++;
                 setTimeout(() => {
                     displayNextWord();
-                    updateProgressBar();
                 }, 1000);
             } else if (!correctAnswerGiven) {
                 document.getElementById('message').textContent = `오답입니다. 정답은 '${englishWord}' 입니다. 다시 입력하세요.`;
@@ -672,7 +679,6 @@
                 document.getElementById('scoreDisplay').textContent = `점수: ${score}`;
                 setTimeout(() => {
                     displayNextWord();
-                    updateProgressBar();
                 }, 1000);
             } else {
                 document.getElementById('message').textContent = "정확하게 입력하세요!";
@@ -707,10 +713,12 @@
                 document.getElementById(optionId).style.color = "#fff";
                 document.getElementById(optionId).style.pointerEvents = "none"; // 추가 클릭 방지
 
+                // 진행 바 업데이트 (정답일 때만)
+                updateProgressBar2();
+
                 currentWordIndex++;
                 setTimeout(() => {
                     displayNextWord2();
-                    updateProgressBar2();
                 }, 1000);
             } else {
                 console.log("오답을 선택했습니다."); // 디버깅 로그
@@ -768,14 +776,48 @@
 
         function updateProgressBar() {
             const progressBar = document.getElementById('progressBar');
-            const progress = ((currentWordIndex) / correctWords.length) * 100;
-            progressBar.style.width = `${progress}%`;
+            const progressFill = document.getElementById('progressBar').firstElementChild;
+            let progress = ((score / (correctWords.length * 10)) * 100).toFixed(2); // 점수에 따른 퍼센트 계산
+
+            // 제한을 100% 이하로 설정
+            if (progress > 100) progress = 100;
+
+            // 애니메이션 속도 조정: 현재 퍼센트에 따라 속도 설정
+            // 퍼센트가 낮을수록 빠르게, 높을수록 천천히
+            let transitionDuration = 0.5; // 기본 0.5초
+            if (progress <= 50) {
+                transitionDuration = 0.3;
+            } else if (progress <= 80) {
+                transitionDuration = 0.5;
+            } else {
+                transitionDuration = 0.7;
+            }
+
+            progressFill.style.transition = `width ${transitionDuration}s cubic-bezier(0.4, 0, 0.2, 1)`;
+            progressFill.style.width = `${progress}%`;
         }
 
         function updateProgressBar2() {
             const progressBar = document.getElementById('progressBar2');
-            const progress = ((currentWordIndex) / correctWords.length) * 100;
-            progressBar.style.width = `${progress}%`;
+            const progressFill = document.getElementById('progressBar2').firstElementChild;
+            let progress = ((score / (correctWords.length * 10)) * 100).toFixed(2); // 점수에 따른 퍼센트 계산
+
+            // 제한을 100% 이하로 설정
+            if (progress > 100) progress = 100;
+
+            // 애니메이션 속도 조정: 현재 퍼센트에 따라 속도 설정
+            // 퍼센트가 낮을수록 빠르게, 높을수록 천천히
+            let transitionDuration = 0.5; // 기본 0.5초
+            if (progress <= 50) {
+                transitionDuration = 0.3;
+            } else if (progress <= 80) {
+                transitionDuration = 0.5;
+            } else {
+                transitionDuration = 0.7;
+            }
+
+            progressFill.style.transition = `width ${transitionDuration}s cubic-bezier(0.4, 0, 0.2, 1)`;
+            progressFill.style.width = `${progress}%`;
         }
 
         function goHome() {
@@ -901,12 +943,10 @@
             if (gameMode === 1) {
                 setTimeout(() => {
                     displayNextWord();
-                    updateProgressBar();
                 }, 2000);
             } else {
                 setTimeout(() => {
                     displayNextWord2();
-                    updateProgressBar2();
                 }, 2000);
             }
         }
