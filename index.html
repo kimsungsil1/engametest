@@ -270,7 +270,7 @@
 </head>
 <body>
 
-    <!-- 오디오 요소를 게임 컨테이너 밖으로 이동 -->
+    <!-- 오디오 요소를 모든 게임 모드에서 접근 가능하도록 상단에 배치 -->
     <!-- 게임 시작(한글보고 영어입력) 모드의 정답 소리 -->
     <audio id="correctSound" preload="auto">
         <!-- MP3 소스만 사용 -->
@@ -305,9 +305,6 @@
 
         <button id="viewPdfButton">교재 보기</button>
         <button id="startCEFRTest">CEFR 레벨 테스트 시작</button>
-
-        <!-- 임시 오디오 테스트 버튼 -->
-        <button onclick="testAudio()">오디오 테스트</button>
     </div>
 
     <!-- 첫 번째 게임 모드 (한글보고 영어입력) -->
@@ -556,6 +553,10 @@
 
         // 음성 듣기 기능
         function playWordAudio() {
+            if (!currentEnglishWord) {
+                console.error("현재 영어 단어가 설정되지 않았습니다.");
+                return;
+            }
             const utterance = new SpeechSynthesisUtterance(currentEnglishWord);
             utterance.lang = 'en-US';
             speechSynthesis.speak(utterance);
@@ -688,7 +689,9 @@
 
             if (selectedOption === koreanWord) {
                 console.log("정답을 맞췄습니다."); // 디버깅 로그
-                document.getElementById('correctSound2').play().then(() => {
+                const correctSound2 = document.getElementById('correctSound2');
+                correctSound2.currentTime = 0; // 재생 위치 초기화
+                correctSound2.play().then(() => {
                     console.log("오디오 재생 성공");
                 }).catch(error => {
                     console.error("오디오 재생 실패:", error);
@@ -966,17 +969,6 @@
             else if (percentage >= 60) return 'B1';
             else if (percentage >= 45) return 'A2';
             else return 'A1';
-        }
-
-        // 오디오 테스트 함수
-        function testAudio() {
-            const testSound = document.getElementById('correctSound');
-            testSound.currentTime = 0;
-            testSound.play().then(() => {
-                console.log("테스트 오디오 재생 성공");
-            }).catch(error => {
-                console.error("테스트 오디오 재생 실패:", error);
-            });
         }
 
         window.onload = () => {
