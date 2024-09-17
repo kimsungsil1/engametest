@@ -4,7 +4,7 @@
     <!-- 메타데이터 및 라이브러리 로드 -->
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Word Master: 다국어 어휘 도전 & 교재 학습</title>
+    <title>Word Master: 영어 어휘 도전 & 교재 학습</title>
     <!-- PDF.js 및 XLSX 라이브러리 -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.9.359/pdf.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.17.0/xlsx.full.min.js"></script>
@@ -209,142 +209,15 @@
                 padding: 12px;
             }
         }
-
-        /* Wordle 게임 스타일 */
-        #wordleContainer {
-            display: none;
-            max-width: 400px;
-            margin: 0 auto;
-            text-align: center;
-        }
-
-        .wordle-row {
-            display: flex;
-            justify-content: center;
-            margin-bottom: 5px;
-        }
-
-        .wordle-tile {
-            width: 50px;
-            height: 50px;
-            border: 2px solid #ccc;
-            margin: 2px;
-            font-size: 2rem;
-            text-transform: uppercase;
-            text-align: center;
-            line-height: 50px;
-            font-weight: bold;
-            transition: transform 0.3s ease;
-        }
-
-        .wordle-tile.correct {
-            background-color: #2ecc71;
-            border-color: #27ae60;
-            color: #fff;
-        }
-
-        .wordle-tile.present {
-            background-color: #f1c40f;
-            border-color: #d4ac0d;
-            color: #fff;
-        }
-
-        .wordle-tile.absent {
-            background-color: #95a5a6;
-            border-color: #7f8c8d;
-            color: #fff;
-        }
-
-        .wordle-tile.flip {
-            animation: flip 0.5s ease;
-        }
-
-        @keyframes flip {
-            0% {
-                transform: rotateX(0);
-            }
-            50% {
-                transform: rotateX(90deg);
-            }
-            100% {
-                transform: rotateX(0);
-            }
-        }
-
-        /* Wordle 키보드 스타일 */
-        .wordle-keyboard {
-            margin-top: 20px;
-        }
-
-        .wordle-keyboard-row {
-            display: flex;
-            justify-content: center;
-            margin-bottom: 5px;
-        }
-
-        .wordle-key {
-            width: 40px;
-            height: 50px;
-            margin: 2px;
-            background-color: #ccc;
-            border: none;
-            font-size: 1rem;
-            text-transform: uppercase;
-            cursor: pointer;
-            font-weight: bold;
-        }
-
-        .wordle-key.correct {
-            background-color: #2ecc71;
-            color: #fff;
-        }
-
-        .wordle-key.present {
-            background-color: #f1c40f;
-            color: #fff;
-        }
-
-        .wordle-key.absent {
-            background-color: #95a5a6;
-            color: #fff;
-        }
-
-        .wordle-message {
-            margin-top: 20px;
-            font-size: 1.2rem;
-            font-weight: bold;
-        }
-
-        /* 모바일 화면에서의 Wordle 키보드 크기 조정 */
-        @media (max-width: 600px) {
-            .wordle-tile {
-                width: 40px;
-                height: 40px;
-                font-size: 1.5rem;
-                line-height: 40px;
-            }
-
-            .wordle-key {
-                width: 30px;
-                height: 40px;
-                font-size: 0.9rem;
-            }
-        }
     </style>
 </head>
 <body>
 
     <!-- 메인 메뉴 -->
     <div class="container" id="mainMenu">
-        <h1>Word Master: 다국어 어휘 도전</h1>
+        <h1>Word Master: 영어 어휘 도전</h1>
         <p>빠르고 재미있는 퀴즈로 어휘력을 키우세요.</p>
         <p>학습의 재미를 경험하세요!</p>
-
-        <!-- 언어 선택 -->
-        <select id="languageSelect">
-            <option value="english">English</option>
-            <!-- 다른 언어 추가 가능 -->
-        </select>
 
         <!-- 레벨 선택 -->
         <select id="levelSelect">
@@ -366,7 +239,6 @@
         <!-- 기타 기능 버튼 -->
         <button id="viewPdfButton">교재 보기</button>
         <button id="startCEFRTest">CEFR 레벨 테스트 시작</button>
-        <button id="startWordleButton">Wordle 게임 시작</button>
     </div>
 
     <!-- 첫 번째 게임 모드 (한글보고 영어입력) -->
@@ -469,53 +341,6 @@
         <button class="home-btn" onclick="goHome()">홈으로 돌아가기</button>
     </div>
 
-    <!-- Wordle 게임 컨테이너 -->
-    <div class="container" id="wordleContainer" style="display: none;">
-        <h1>Wordle 게임</h1>
-        <div id="wordleGrid">
-            <!-- 단어 입력 칸이 JavaScript로 생성됩니다 -->
-        </div>
-        <div class="wordle-keyboard">
-            <!-- 가상 키보드 -->
-            <div class="wordle-keyboard-row">
-                <button class="wordle-key">q</button>
-                <button class="wordle-key">w</button>
-                <button class="wordle-key">e</button>
-                <button class="wordle-key">r</button>
-                <button class="wordle-key">t</button>
-                <button class="wordle-key">y</button>
-                <button class="wordle-key">u</button>
-                <button class="wordle-key">i</button>
-                <button class="wordle-key">o</button>
-                <button class="wordle-key">p</button>
-            </div>
-            <div class="wordle-keyboard-row">
-                <button class="wordle-key">a</button>
-                <button class="wordle-key">s</button>
-                <button class="wordle-key">d</button>
-                <button class="wordle-key">f</button>
-                <button class="wordle-key">g</button>
-                <button class="wordle-key">h</button>
-                <button class="wordle-key">j</button>
-                <button class="wordle-key">k</button>
-                <button class="wordle-key">l</button>
-            </div>
-            <div class="wordle-keyboard-row">
-                <button class="wordle-key" data-key="enter">Enter</button>
-                <button class="wordle-key">z</button>
-                <button class="wordle-key">x</button>
-                <button class="wordle-key">c</button>
-                <button class="wordle-key">v</button>
-                <button class="wordle-key">b</button>
-                <button class="wordle-key">n</button>
-                <button class="wordle-key">m</button>
-                <button class="wordle-key" data-key="backspace">←</button>
-            </div>
-        </div>
-        <div class="wordle-message" id="wordleMessage"></div>
-        <button class="home-btn" onclick="goHome()">홈으로 돌아가기</button>
-    </div>
-
     <!-- 푸터 -->
     <footer>
         제작: 김성실 | 문의: <a href="mailto:sungsil.kim@lcnine.kr">sungsil.kim@lcnine.kr</a>
@@ -538,48 +363,13 @@
 
         let gameMode = 1; // 1: 한글보고 영어입력, 2: 영어보고 뜻 선택
 
-        let selectedLanguage = 'english'; // 선택된 언어
-
-        // **정답 횟수 추적 변수 추가**
+        // 정답 횟수 추적 변수
         let correctAnswerCount = 0;
 
         // CEFR 테스트 관련 변수
         let cefrQuestions = [];
         let cefrCurrentIndex = 0;
         let cefrScore = 0;
-
-        // Wordle 게임 관련 변수
-        let wordleWords = [];
-        let validWordleWords = [];
-        let wordleAnswer = '';
-        let wordleCurrentRow = 0;
-        let wordleCurrentCol = 0;
-        let wordleMaxRows = 6;
-        let wordleMaxCols = 5;
-        let wordleGrid = [];
-        let wordleGameOver = false;
-
-        // 언어 선택 이벤트 리스너
-        document.getElementById('languageSelect').addEventListener('change', function() {
-            selectedLanguage = this.value;
-
-            // 언어 선택에 따라 버튼 표시/숨김
-            if (selectedLanguage === 'english') {
-                document.getElementById('levelSelect').style.display = 'block';
-                document.getElementById('viewPdfButton').style.display = 'block';
-                document.getElementById('startButton').style.display = 'block';
-                document.getElementById('startButton2').style.display = 'block';
-                document.getElementById('startCEFRTest').style.display = 'block';
-                document.getElementById('startWordleButton').style.display = 'block';
-            } else {
-                document.getElementById('levelSelect').style.display = 'none';
-                document.getElementById('viewPdfButton').style.display = 'none';
-                document.getElementById('startButton').style.display = 'none';
-                document.getElementById('startButton2').style.display = 'block';
-                document.getElementById('startCEFRTest').style.display = 'none';
-                document.getElementById('startWordleButton').style.display = 'none';
-            }
-        });
 
         // 게임 시작 버튼 이벤트 리스너
         document.getElementById('startButton').addEventListener('click', function() {
@@ -595,7 +385,6 @@
         // 기타 버튼 이벤트 리스너
         document.getElementById('viewPdfButton').addEventListener('click', viewPdf);
         document.getElementById('startCEFRTest').addEventListener('click', startCEFRTest);
-        document.getElementById('startWordleButton').addEventListener('click', startWordleGame);
 
         // 게임 시작 함수
         function startGame() {
@@ -603,82 +392,69 @@
             const timeLimitInput = document.getElementById('timeLimit').value;
             timeLeft = timeLimitInput ? parseInt(timeLimitInput) : 30;
 
-            if (selectedLanguage) {
-                document.getElementById('mainMenu').style.display = 'none';
+            document.getElementById('mainMenu').style.display = 'none';
 
-                if (selectedLanguage === 'english') {
-                    if (gameMode === 1) {
-                        document.getElementById('gameContainer1').style.display = 'block';
-                    } else {
-                        document.getElementById('gameContainer2').style.display = 'block';
-                    }
-                } else {
-                    gameMode = 2;
-                    document.getElementById('gameContainer2').style.display = 'block';
-                }
-
-                loadWords(level);
+            if (gameMode === 1) {
+                document.getElementById('gameContainer1').style.display = 'block';
             } else {
-                alert("언어를 선택해주세요!");
+                document.getElementById('gameContainer2').style.display = 'block';
             }
+
+            loadWords(level);
         }
 
         // 단어 로드 함수
         function loadWords(level) {
-            if (selectedLanguage === 'english') {
-                let fileName;
+            let fileName;
 
-                if (level === 'A1') {
-                    fileName = 'A1WORD.xlsx';
-                } else if (level === 'A2') {
-                    fileName = 'A2WORD.xlsx';
-                } else if (level === 'B1') {
-                    fileName = 'B1WORD.xlsx';
-                } else if (level === 'B2') {
-                    fileName = 'B2WORD.xlsx';
-                } else if (level === 'C1') {
-                    fileName = 'C1WORD.xlsx';
-                }
-
-                fetch(fileName)
-                    .then(response => {
-                        if (!response.ok) {
-                            throw new Error('파일을 불러오지 못했습니다.');
-                        }
-                        return response.arrayBuffer();
-                    })
-                    .then(data => {
-                        const workbook = XLSX.read(data, { type: 'array' });
-                        const sheetName = workbook.SheetNames[0];
-                        const sheet = workbook.Sheets[sheetName];
-                        const jsonData = XLSX.utils.sheet_to_json(sheet, { header: 1 });
-                        correctWords = shuffleArray(jsonData.slice(1));
-                        currentWordIndex = 0;
-                        score = 0;
-                        correctAnswerGiven = false;
-                        correctAnswerCount = 0; // 정답 횟수 초기화
-
-                        if (gameMode === 1) {
-                            document.getElementById('scoreDisplay').textContent = `점수: ${score}`;
-                            document.getElementById('questionCounter').textContent = `0 / ${correctWords.length}`;
-                            updateProgressBar();
-                            displayNextWord();
-                        } else {
-                            document.getElementById('scoreDisplay2').textContent = `점수: ${score}`;
-                            document.getElementById('questionCounter2').textContent = `0 / ${correctWords.length}`;
-                            updateProgressBar2();
-                            displayNextWord2();
-                        }
-                    })
-                    .catch(error => {
-                        alert('단어 파일을 불러오는 중 오류가 발생했습니다: ' + error.message);
-                        document.getElementById('mainMenu').style.display = 'block';
-                        document.getElementById('gameContainer1').style.display = 'none';
-                        document.getElementById('gameContainer2').style.display = 'none';
-                    });
-            } else {
-                // 다른 언어의 경우 샘플 단어 사용 또는 추가 가능
+            if (level === 'A1') {
+                fileName = 'A1WORD.xlsx';
+            } else if (level === 'A2') {
+                fileName = 'A2WORD.xlsx';
+            } else if (level === 'B1') {
+                fileName = 'B1WORD.xlsx';
+            } else if (level === 'B2') {
+                fileName = 'B2WORD.xlsx';
+            } else if (level === 'C1') {
+                fileName = 'C1WORD.xlsx';
             }
+
+            fetch(fileName)
+                .then(response => {
+                    if (!response.ok) {
+                        throw new Error('파일을 불러오지 못했습니다.');
+                    }
+                    return response.arrayBuffer();
+                })
+                .then(data => {
+                    const workbook = XLSX.read(data, { type: 'array' });
+                    const sheetName = workbook.SheetNames[0];
+                    const sheet = workbook.Sheets[sheetName];
+                    const jsonData = XLSX.utils.sheet_to_json(sheet, { header: 1 });
+                    correctWords = shuffleArray(jsonData.slice(1));
+                    currentWordIndex = 0;
+                    score = 0;
+                    correctAnswerGiven = false;
+                    correctAnswerCount = 0; // 정답 횟수 초기화
+
+                    if (gameMode === 1) {
+                        document.getElementById('scoreDisplay').textContent = `점수: ${score}`;
+                        document.getElementById('questionCounter').textContent = `0 / ${correctWords.length}`;
+                        updateProgressBar();
+                        displayNextWord();
+                    } else {
+                        document.getElementById('scoreDisplay2').textContent = `점수: ${score}`;
+                        document.getElementById('questionCounter2').textContent = `0 / ${correctWords.length}`;
+                        updateProgressBar2();
+                        displayNextWord2();
+                    }
+                })
+                .catch(error => {
+                    alert('단어 파일을 불러오는 중 오류가 발생했습니다: ' + error.message);
+                    document.getElementById('mainMenu').style.display = 'block';
+                    document.getElementById('gameContainer1').style.display = 'none';
+                    document.getElementById('gameContainer2').style.display = 'none';
+                });
         }
 
         // 단어 섞기 함수
@@ -690,7 +466,7 @@
             return array;
         }
 
-        // 게임 모드별 함수들
+        // 첫 번째 게임 모드 함수들
         function displayNextWord() {
             if (currentWordIndex < correctWords.length) {
                 const [englishWord, koreanWord] = correctWords[currentWordIndex];
@@ -725,7 +501,7 @@
                 document.getElementById('scoreDisplay').textContent = `점수: ${score}`;
                 document.getElementById('correctSound').play();
 
-                correctAnswerCount++; // **정답 횟수 증가**
+                correctAnswerCount++; // 정답 횟수 증가
 
                 currentWordIndex++;
                 setTimeout(() => {
@@ -742,7 +518,7 @@
                 document.getElementById('message').style.color = "#2ecc71";
                 document.getElementById('englishInput').style.borderColor = "#2ecc71";
 
-                correctAnswerCount++; // **정답 횟수 증가**
+                correctAnswerCount++; // 정답 횟수 증가
 
                 currentWordIndex++;
                 score += 5;
@@ -764,6 +540,40 @@
             progressBar.style.width = `${progress}%`;
         }
 
+        function startTimer() {
+            const timeLimitInput = document.getElementById('timeLimit').value;
+            timeLeft = timeLimitInput ? parseInt(timeLimitInput) : 30;
+
+            document.getElementById('timerDisplay').textContent = `남은 시간: ${timeLeft}초`;
+            clearInterval(timer);
+            timer = setInterval(() => {
+                timeLeft--;
+                document.getElementById('timerDisplay').textContent = `남은 시간: ${timeLeft}초`;
+
+                if (timeLeft <= 10 && !correctAnswerGiven) {
+                    document.getElementById('message').textContent = `힌트: 단어의 첫 글자는 '${currentEnglishWord[0].toUpperCase()}' 입니다.`;
+                    document.getElementById('message').style.color = "#f1c40f";
+                }
+
+                if (timeLeft <= 0) {
+                    clearInterval(timer);
+                    timeLeft = 0;
+                    document.getElementById('timerDisplay').textContent = `남은 시간: 0초`;
+                    skipWord();
+                }
+            }, 1000);
+        }
+
+        function skipWord() {
+            const [englishWord, koreanWord] = correctWords[currentWordIndex];
+            document.getElementById('message').textContent = `정답은 '${englishWord}' 입니다.`;
+            currentWordIndex++;
+            setTimeout(() => {
+                displayNextWord();
+                // 진행 바 업데이트하지 않음
+            }, 2000);
+        }
+
         // 두 번째 게임 모드 함수들
         function displayNextWord2() {
             if (currentWordIndex < correctWords.length) {
@@ -777,21 +587,12 @@
                     element.classList.remove('correct', 'incorrect');
                 });
 
-                const [word1, word2] = correctWords[currentWordIndex];
-                let questionWord, answerWord;
+                const [englishWord, koreanWord] = correctWords[currentWordIndex];
 
-                if (selectedLanguage === 'english') {
-                    questionWord = word1;
-                    answerWord = word2;
-                } else {
-                    questionWord = word1;
-                    answerWord = word2;
-                }
-
-                document.getElementById('englishWord').textContent = questionWord;
+                document.getElementById('englishWord').textContent = englishWord;
 
                 // 무작위로 3개의 선택지 생성
-                let options = [answerWord];
+                let options = [koreanWord];
                 while (options.length < 3) {
                     const randomWord = correctWords[Math.floor(Math.random() * correctWords.length)][1];
                     if (!options.includes(randomWord)) {
@@ -817,14 +618,8 @@
         function checkAnswer2(optionId) {
             const selectedOptionElement = document.getElementById(optionId);
             const selectedOption = selectedOptionElement.textContent;
-            const [word1, word2] = correctWords[currentWordIndex];
-            let correctAnswer;
-
-            if (selectedLanguage === 'english') {
-                correctAnswer = word2;
-            } else {
-                correctAnswer = word2;
-            }
+            const [englishWord, koreanWord] = correctWords[currentWordIndex];
+            const correctAnswer = koreanWord;
 
             // 모든 선택지 클릭 비활성화
             const optionElements = document.querySelectorAll('.option');
@@ -839,7 +634,7 @@
                 score += 10;
                 document.getElementById('scoreDisplay2').textContent = `점수: ${score}`;
 
-                correctAnswerCount++; // **정답 횟수 증가**
+                correctAnswerCount++; // 정답 횟수 증가
 
                 currentWordIndex++;
                 setTimeout(() => {
@@ -873,7 +668,7 @@
         function startTimer2() {
             const timeLimitInput = document.getElementById('timeLimit').value;
             timeLeft = timeLimitInput ? parseInt(timeLimitInput) : 30;
-            
+
             document.getElementById('timerDisplay2').textContent = `남은 시간: ${timeLeft}초`;
             clearInterval(timer);
             timer = setInterval(() => {
@@ -884,30 +679,6 @@
                     clearInterval(timer);
                     timeLeft = 0;
                     document.getElementById('timerDisplay2').textContent = `남은 시간: 0초`;
-                    skipWord();
-                }
-            }, 1000);
-        }
-
-        function startTimer() {
-            const timeLimitInput = document.getElementById('timeLimit').value;
-            timeLeft = timeLimitInput ? parseInt(timeLimitInput) : 30;
-            
-            document.getElementById('timerDisplay').textContent = `남은 시간: ${timeLeft}초`;
-            clearInterval(timer);
-            timer = setInterval(() => {
-                timeLeft--;
-                document.getElementById('timerDisplay').textContent = `남은 시간: ${timeLeft}초`;
-
-                if (timeLeft <= 10 && !correctAnswerGiven) {
-                    document.getElementById('message').textContent = `힌트: 단어의 첫 글자는 '${currentEnglishWord[0].toUpperCase()}' 입니다.`;
-                    document.getElementById('message').style.color = "#f1c40f";
-                }
-
-                if (timeLeft <= 0) {
-                    clearInterval(timer);
-                    timeLeft = 0;
-                    document.getElementById('timerDisplay').textContent = `남은 시간: 0초`;
                     skipWord();
                 }
             }, 1000);
@@ -937,7 +708,15 @@
             speechSynthesis.speak(utterance);
         }
 
-        // 기타 함수들 (예: goHome, viewPdf 등)은 기존 코드 그대로 사용합니다.
+        // 홈으로 돌아가기 함수
+        function goHome() {
+            document.getElementById('mainMenu').style.display = 'block';
+            document.getElementById('gameContainer1').style.display = 'none';
+            document.getElementById('gameContainer2').style.display = 'none';
+            document.getElementById('pdfContainer').style.display = 'none';
+            document.getElementById('cefrTestContainer').style.display = 'none';
+            clearInterval(timer);
+        }
 
         // 페이지 로드 시 초기 설정
         window.onload = () => {
@@ -946,15 +725,6 @@
             document.getElementById('gameContainer2').style.display = 'none';
             document.getElementById('pdfContainer').style.display = 'none';
             document.getElementById('cefrTestContainer').style.display = 'none';
-            document.getElementById('wordleContainer').style.display = 'none';
-
-            if (selectedLanguage === 'english') {
-                document.getElementById('startCEFRTest').style.display = 'block';
-                document.getElementById('startWordleButton').style.display = 'block';
-            } else {
-                document.getElementById('startCEFRTest').style.display = 'none';
-                document.getElementById('startWordleButton').style.display = 'none';
-            }
         };
     </script>
 </body>
