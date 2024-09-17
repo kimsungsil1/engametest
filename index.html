@@ -540,6 +540,9 @@
 
         let selectedLanguage = 'english'; // 선택된 언어
 
+        // **정답 횟수 추적 변수 추가**
+        let correctAnswerCount = 0;
+
         // CEFR 테스트 관련 변수
         let cefrQuestions = [];
         let cefrCurrentIndex = 0;
@@ -653,6 +656,7 @@
                         currentWordIndex = 0;
                         score = 0;
                         correctAnswerGiven = false;
+                        correctAnswerCount = 0; // 정답 횟수 초기화
 
                         if (gameMode === 1) {
                             document.getElementById('scoreDisplay').textContent = `점수: ${score}`;
@@ -687,214 +691,253 @@
         }
 
         // 게임 모드별 함수들
-        // ... (displayNextWord, checkAnswer 등 기존 함수 유지)
+        function displayNextWord() {
+            if (currentWordIndex < correctWords.length) {
+                const [englishWord, koreanWord] = correctWords[currentWordIndex];
+                currentEnglishWord = englishWord;
+                document.getElementById('koreanWord').textContent = koreanWord;
+                document.getElementById('englishInput').value = '';
+                document.getElementById('message').textContent = '';
+                document.getElementById('englishInput').style.borderColor = "#3498db";
+                document.getElementById('englishInput').focus();
+                correctAnswerGiven = false;
+                startTimer();
+                document.getElementById('questionCounter').textContent = `${currentWordIndex + 1} / ${correctWords.length}`;
+            } else {
+                document.getElementById('koreanWord').textContent = '축하합니다! 모든 단어를 맞추셨습니다!';
+                document.getElementById('englishInput').style.display = 'none';
+                document.getElementById('submitButton').style.display = 'none';
+                document.getElementById('skipButton').style.display = 'none';
+                document.getElementById('listenButton').style.display = 'none';
+                clearInterval(timer);
+            }
+        }
 
-        // Wordle 게임 시작 함수
-        function startWordleGame() {
-            let wordleWordsFile;
-            let validWordsFile;
+        function checkAnswer() {
+            const [englishWord] = correctWords[currentWordIndex];
+            const userAnswer = document.getElementById('englishInput').value.trim().toLowerCase();
+
+            if (userAnswer === englishWord.toLowerCase()) {
+                document.getElementById('message').textContent = "정답입니다!";
+                document.getElementById('message').style.color = "#2ecc71";
+                document.getElementById('englishInput').style.borderColor = "#2ecc71";
+                score += 10;
+                document.getElementById('scoreDisplay').textContent = `점수: ${score}`;
+                document.getElementById('correctSound').play();
+
+                correctAnswerCount++; // **정답 횟수 증가**
+
+                currentWordIndex++;
+                setTimeout(() => {
+                    displayNextWord();
+                    updateProgressBar(); // 진행 바 업데이트
+                }, 1000);
+            } else if (!correctAnswerGiven) {
+                document.getElementById('message').textContent = `오답입니다. 정답은 '${englishWord}' 입니다. 다시 입력하세요.`;
+                document.getElementById('message').style.color = "#e74c3c";
+                document.getElementById('englishInput').style.borderColor = "#e74c3c";
+                correctAnswerGiven = true;
+            } else if (correctAnswerGiven && userAnswer === englishWord.toLowerCase()) {
+                document.getElementById('message').textContent = "정확하게 입력하셨습니다!";
+                document.getElementById('message').style.color = "#2ecc71";
+                document.getElementById('englishInput').style.borderColor = "#2ecc71";
+
+                correctAnswerCount++; // **정답 횟수 증가**
+
+                currentWordIndex++;
+                score += 5;
+                document.getElementById('scoreDisplay').textContent = `점수: ${score}`;
+                setTimeout(() => {
+                    displayNextWord();
+                    updateProgressBar(); // 진행 바 업데이트
+                }, 1000);
+            } else {
+                document.getElementById('message').textContent = "정확하게 입력하세요!";
+                document.getElementById('message').style.color = "#e74c3c";
+                // 진행 바 업데이트하지 않음
+            }
+        }
+
+        function updateProgressBar() {
+            const progressBar = document.getElementById('progressBar');
+            const progress = (correctAnswerCount / correctWords.length) * 100;
+            progressBar.style.width = `${progress}%`;
+        }
+
+        // 두 번째 게임 모드 함수들
+        function displayNextWord2() {
+            if (currentWordIndex < correctWords.length) {
+                // 선택지 스타일 초기화
+                const optionElements = document.querySelectorAll('.option');
+                optionElements.forEach(function(element) {
+                    element.style.backgroundColor = '';
+                    element.style.color = '';
+                    element.style.borderColor = '#3498db';
+                    element.style.pointerEvents = 'auto';
+                    element.classList.remove('correct', 'incorrect');
+                });
+
+                const [word1, word2] = correctWords[currentWordIndex];
+                let questionWord, answerWord;
+
+                if (selectedLanguage === 'english') {
+                    questionWord = word1;
+                    answerWord = word2;
+                } else {
+                    questionWord = word1;
+                    answerWord = word2;
+                }
+
+                document.getElementById('englishWord').textContent = questionWord;
+
+                // 무작위로 3개의 선택지 생성
+                let options = [answerWord];
+                while (options.length < 3) {
+                    const randomWord = correctWords[Math.floor(Math.random() * correctWords.length)][1];
+                    if (!options.includes(randomWord)) {
+                        options.push(randomWord);
+                    }
+                }
+                shuffleArray(options);
+
+                document.getElementById('option1').textContent = options[0];
+                document.getElementById('option2').textContent = options[1];
+                document.getElementById('option3').textContent = options[2];
+
+                correctAnswerGiven = false;
+                startTimer2();
+                document.getElementById('questionCounter2').textContent = `${currentWordIndex + 1} / ${correctWords.length}`;
+            } else {
+                document.getElementById('englishWord').textContent = '축하합니다! 모든 단어를 맞추셨습니다!';
+                document.getElementById('optionsContainer').style.display = 'none';
+                clearInterval(timer);
+            }
+        }
+
+        function checkAnswer2(optionId) {
+            const selectedOptionElement = document.getElementById(optionId);
+            const selectedOption = selectedOptionElement.textContent;
+            const [word1, word2] = correctWords[currentWordIndex];
+            let correctAnswer;
 
             if (selectedLanguage === 'english') {
-                wordleWordsFile = 'wordle_words.json';
-                validWordsFile = 'valid_words.json';
+                correctAnswer = word2;
             } else {
-                alert('Wordle 게임은 현재 선택한 언어를 지원하지 않습니다.');
-                return;
+                correctAnswer = word2;
             }
 
-            document.getElementById('mainMenu').style.display = 'none';
-            document.getElementById('wordleContainer').style.display = 'block';
-
-            Promise.all([
-                fetch(wordleWordsFile).then(response => response.json()),
-                fetch(validWordsFile).then(response => response.json())
-            ])
-            .then(([wordleData, validData]) => {
-                wordleWords = wordleData.words;
-                validWordleWords = validData.validWords;
-                wordleAnswer = wordleWords[Math.floor(Math.random() * wordleWords.length)];
-                console.log('정답:', wordleAnswer);
-                initializeWordleGame();
-            })
-            .catch(error => {
-                alert('단어 목록을 불러오는 중 오류가 발생했습니다: ' + error.message);
-                goHome();
+            // 모든 선택지 클릭 비활성화
+            const optionElements = document.querySelectorAll('.option');
+            optionElements.forEach(function(element) {
+                element.style.pointerEvents = 'none';
             });
-        }
 
-        // Wordle 게임 초기화 함수
-        function initializeWordleGame() {
-            wordleGrid = [];
-            wordleCurrentRow = 0;
-            wordleCurrentCol = 0;
-            wordleGameOver = false;
+            if (selectedOption === correctAnswer) {
+                // 정답일 때 스타일 변경
+                selectedOptionElement.classList.add('correct');
+                document.getElementById('correctSound2').play();
+                score += 10;
+                document.getElementById('scoreDisplay2').textContent = `점수: ${score}`;
 
-            createWordleGrid();
+                correctAnswerCount++; // **정답 횟수 증가**
 
-            document.addEventListener('keydown', handleWordleKeydown);
-            const keys = document.querySelectorAll('.wordle-key');
-            keys.forEach(key => key.addEventListener('click', handleWordleClick));
-        }
-
-        // Wordle 그리드 생성 함수
-        function createWordleGrid() {
-            const gridElement = document.getElementById('wordleGrid');
-            gridElement.innerHTML = '';
-            for (let i = 0; i < wordleMaxRows; i++) {
-                const row = [];
-                const rowElement = document.createElement('div');
-                rowElement.classList.add('wordle-row');
-                for (let j = 0; j < wordleMaxCols; j++) {
-                    const tileElement = document.createElement('div');
-                    tileElement.classList.add('wordle-tile');
-                    rowElement.appendChild(tileElement);
-                    row.push('');
-                }
-                gridElement.appendChild(rowElement);
-                wordleGrid.push(row);
-            }
-        }
-
-        // Wordle 키 입력 처리 함수
-        function handleWordleKeydown(event) {
-            if (wordleGameOver) return;
-            const key = event.key.toLowerCase();
-            if (key === 'enter') {
-                submitWordleGuess();
-            } else if (key === 'backspace') {
-                deleteWordleLetter();
-            } else if (/^[a-z]$/.test(key)) {
-                addWordleLetter(key);
-            }
-        }
-
-        function handleWordleClick(event) {
-            if (wordleGameOver) return;
-            const key = event.target.getAttribute('data-key') || event.target.textContent.toLowerCase();
-            if (key === 'enter') {
-                submitWordleGuess();
-            } else if (key === 'backspace' || key === '←') {
-                deleteWordleLetter();
-            } else if (/^[a-z]$/.test(key)) {
-                addWordleLetter(key);
-            }
-        }
-
-        // Wordle 글자 추가/삭제 함수
-        function addWordleLetter(letter) {
-            if (wordleCurrentCol < wordleMaxCols) {
-                const rowElement = document.getElementsByClassName('wordle-row')[wordleCurrentRow];
-                const tileElement = rowElement.children[wordleCurrentCol];
-                tileElement.textContent = letter.toUpperCase();
-                wordleGrid[wordleCurrentRow][wordleCurrentCol] = letter;
-                wordleCurrentCol++;
-            }
-        }
-
-        function deleteWordleLetter() {
-            if (wordleCurrentCol > 0) {
-                wordleCurrentCol--;
-                const rowElement = document.getElementsByClassName('wordle-row')[wordleCurrentRow];
-                const tileElement = rowElement.children[wordleCurrentCol];
-                tileElement.textContent = '';
-                wordleGrid[wordleCurrentRow][wordleCurrentCol] = '';
-            }
-        }
-
-        // Wordle 단어 제출 함수
-        function submitWordleGuess() {
-            if (wordleCurrentCol < wordleMaxCols) {
-                showWordleMessage('글자를 모두 입력하세요.');
-                return;
-            }
-
-            const guess = wordleGrid[wordleCurrentRow].join('');
-            if (!validWordleWords.includes(guess)) {
-                showWordleMessage('유효한 단어가 아닙니다.');
-                return;
-            }
-
-            const rowElement = document.getElementsByClassName('wordle-row')[wordleCurrentRow];
-            const keyButtons = document.querySelectorAll('.wordle-key');
-
-            for (let i = 0; i < wordleMaxCols; i++) {
-                const tileElement = rowElement.children[i];
-                const letter = wordleGrid[wordleCurrentRow][i];
-
-                // 애니메이션 적용
+                currentWordIndex++;
                 setTimeout(() => {
-                    tileElement.classList.add('flip');
-
-                    if (wordleAnswer[i] === letter) {
-                        tileElement.classList.add('correct');
-                        keyButtons.forEach(key => {
-                            if (key.textContent.toLowerCase() === letter) {
-                                key.classList.remove('present');
-                                key.classList.add('correct');
-                            }
-                        });
-                    } else if (wordleAnswer.includes(letter)) {
-                        tileElement.classList.add('present');
-                        keyButtons.forEach(key => {
-                            if (key.textContent.toLowerCase() === letter && !key.classList.contains('correct')) {
-                                key.classList.add('present');
-                            }
-                        });
-                    } else {
-                        tileElement.classList.add('absent');
-                        keyButtons.forEach(key => {
-                            if (key.textContent.toLowerCase() === letter) {
-                                key.classList.add('absent');
-                            }
-                        });
+                    displayNextWord2();
+                    updateProgressBar2(); // 진행 바 업데이트
+                }, 1000);
+            } else {
+                // 오답일 때 스타일 변경
+                selectedOptionElement.classList.add('incorrect');
+                alert('오답입니다.');
+                // 정답인 선택지 표시
+                optionElements.forEach(function(element) {
+                    if (element.textContent === correctAnswer) {
+                        element.classList.add('correct');
                     }
-                }, i * 300); // 각 타일마다 지연 시간 적용
+                });
+                currentWordIndex++;
+                setTimeout(() => {
+                    displayNextWord2();
+                    // 진행 바 업데이트하지 않음
+                }, 1000);
             }
-
-            setTimeout(() => {
-                if (guess === wordleAnswer) {
-                    showWordleMessage('축하합니다! 정답을 맞추셨습니다!');
-                    wordleGameOver = true;
-                    document.removeEventListener('keydown', handleWordleKeydown);
-                } else {
-                    wordleCurrentRow++;
-                    wordleCurrentCol = 0;
-                    if (wordleCurrentRow >= wordleMaxRows) {
-                        showWordleMessage(`실패했습니다. 정답은 '${wordleAnswer.toUpperCase()}' 입니다.`);
-                        wordleGameOver = true;
-                        document.removeEventListener('keydown', handleWordleKeydown);
-                    }
-                }
-            }, wordleMaxCols * 300);
         }
 
-        // Wordle 메시지 표시 함수
-        function showWordleMessage(message) {
-            const messageElement = document.getElementById('wordleMessage');
-            messageElement.textContent = message;
-            setTimeout(() => {
-                messageElement.textContent = '';
-            }, 3000);
+        function updateProgressBar2() {
+            const progressBar = document.getElementById('progressBar2');
+            const progress = (correctAnswerCount / correctWords.length) * 100;
+            progressBar.style.width = `${progress}%`;
         }
 
-        // 홈으로 돌아가기 함수
-        function goHome() {
-            // 모든 컨테이너 숨기기
-            document.getElementById('gameContainer1').style.display = 'none';
-            document.getElementById('gameContainer2').style.display = 'none';
-            document.getElementById('pdfContainer').style.display = 'none';
-            document.getElementById('cefrTestContainer').style.display = 'none';
-            document.getElementById('wordleContainer').style.display = 'none';
-            document.getElementById('mainMenu').style.display = 'block';
-
-            // 타이머 중지
+        function startTimer2() {
+            const timeLimitInput = document.getElementById('timeLimit').value;
+            timeLeft = timeLimitInput ? parseInt(timeLimitInput) : 30;
+            
+            document.getElementById('timerDisplay2').textContent = `남은 시간: ${timeLeft}초`;
             clearInterval(timer);
+            timer = setInterval(() => {
+                timeLeft--;
+                document.getElementById('timerDisplay2').textContent = `남은 시간: ${timeLeft}초`;
 
-            // Wordle 게임 초기화
-            document.removeEventListener('keydown', handleWordleKeydown);
-            const keys = document.querySelectorAll('.wordle-key');
-            keys.forEach(key => key.removeEventListener('click', handleWordleClick));
+                if (timeLeft <= 0) {
+                    clearInterval(timer);
+                    timeLeft = 0;
+                    document.getElementById('timerDisplay2').textContent = `남은 시간: 0초`;
+                    skipWord();
+                }
+            }, 1000);
         }
+
+        function startTimer() {
+            const timeLimitInput = document.getElementById('timeLimit').value;
+            timeLeft = timeLimitInput ? parseInt(timeLimitInput) : 30;
+            
+            document.getElementById('timerDisplay').textContent = `남은 시간: ${timeLeft}초`;
+            clearInterval(timer);
+            timer = setInterval(() => {
+                timeLeft--;
+                document.getElementById('timerDisplay').textContent = `남은 시간: ${timeLeft}초`;
+
+                if (timeLeft <= 10 && !correctAnswerGiven) {
+                    document.getElementById('message').textContent = `힌트: 단어의 첫 글자는 '${currentEnglishWord[0].toUpperCase()}' 입니다.`;
+                    document.getElementById('message').style.color = "#f1c40f";
+                }
+
+                if (timeLeft <= 0) {
+                    clearInterval(timer);
+                    timeLeft = 0;
+                    document.getElementById('timerDisplay').textContent = `남은 시간: 0초`;
+                    skipWord();
+                }
+            }, 1000);
+        }
+
+        function skipWord() {
+            const [englishWord, koreanWord] = correctWords[currentWordIndex];
+            document.getElementById('message').textContent = `정답은 '${englishWord}' 입니다.`;
+            currentWordIndex++;
+            if (gameMode === 1) {
+                setTimeout(() => {
+                    displayNextWord();
+                    // 진행 바 업데이트하지 않음
+                }, 2000);
+            } else {
+                setTimeout(() => {
+                    displayNextWord2();
+                    // 진행 바 업데이트하지 않음
+                }, 2000);
+            }
+        }
+
+        // 음성 듣기 기능
+        function playWordAudio() {
+            const utterance = new SpeechSynthesisUtterance(currentEnglishWord);
+            utterance.lang = 'en-US';
+            speechSynthesis.speak(utterance);
+        }
+
+        // 기타 함수들 (예: goHome, viewPdf 등)은 기존 코드 그대로 사용합니다.
 
         // 페이지 로드 시 초기 설정
         window.onload = () => {
@@ -913,9 +956,6 @@
                 document.getElementById('startWordleButton').style.display = 'none';
             }
         };
-
-        // 기타 필요한 함수들 (예: viewPdf, startCEFRTest 등)은 기존 코드를 그대로 사용합니다.
-        // 전체 코드 길이로 인해 모든 함수를 여기 포함하지는 않았지만, 기존 코드에서 필요한 함수들을 추가하시면 됩니다.
     </script>
 </body>
 </html>
