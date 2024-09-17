@@ -608,24 +608,32 @@
             }
         }
 
-        function checkAnswer2(optionId) {
-            const selectedOption = document.getElementById(optionId).textContent;
-            const [englishWord, koreanWord] = correctWords[currentWordIndex];
+function checkAnswer2(optionId) {
+    const selectedOption = document.getElementById(optionId).textContent;
+    const [englishWord, koreanWord] = correctWords[currentWordIndex];
 
-            if (selectedOption === koreanWord) {
-                document.getElementById('correctSound2').play();
-                score += 10;
-                document.getElementById('scoreDisplay2').textContent = `점수: ${score}`;
-                currentWordIndex++;
-                setTimeout(() => {
-                    displayNextWord2();
-                    updateProgressBar2();
-                }, 1000);
-            } else {
-                alert('오답입니다.');
-            }
-        }
+    // 모든 선택지의 배경색 초기화
+    const options = document.querySelectorAll('.option');
+    options.forEach(option => {
+        option.style.backgroundColor = ''; // 배경색 초기화
+    });
 
+    // 선택된 보기의 배경색 변경
+    document.getElementById(optionId).style.backgroundColor = '#2ecc71'; // 선택된 보기의 배경색을 초록색으로 변경
+
+    if (selectedOption === koreanWord) {
+        document.getElementById('correctSound2').play();
+        score += 10;
+        document.getElementById('scoreDisplay2').textContent = `점수: ${score}`;
+        currentWordIndex++;
+        setTimeout(() => {
+            displayNextWord2();
+            updateProgressBar2();
+        }, 1000);
+    } else {
+        alert('오답입니다.');
+    }
+}
         function startTimer() {
             // 각 문제 시작 시, timeLeft를 초기화
             const timeLimitInput = document.getElementById('timeLimit').value;
