@@ -456,22 +456,7 @@
             timeLeft = timeLimitInput ? parseInt(timeLimitInput) : 30; // 사용자 정의 시간 제한 또는 기본 30초
             if (level) {
                 document.getElementById('mainMenu').style.display = 'none';
-                if (gameMode === 1) {
-                    document.getElementById('gameContainer1').style.display = 'block';
-                    correctCount1 = 0; // Reset correct count for mode 1
-                    document.getElementById('scoreDisplay').textContent = `점수: ${score}`;
-                    document.getElementById('questionCounter').textContent = `0 / ${correctWords.length}`;
-                    updateProgressBar();
-                    displayNextWord();
-                } else {
-                    document.getElementById('gameContainer2').style.display = 'block';
-                    correctCount2 = 0; // Reset correct count for mode 2
-                    document.getElementById('scoreDisplay2').textContent = `점수: ${score}`;
-                    document.getElementById('questionCounter2').textContent = `0 / ${correctWords.length}`;
-                    updateProgressBar2();
-                    displayNextWord2();
-                }
-                loadWords(level);
+                loadWords(level); // loadWords 호출 후 게임 설정
             } else {
                 alert("레벨을 선택해주세요!");
             }
@@ -508,12 +493,19 @@
                     currentWordIndex = 0;
                     score = 0;
                     correctAnswerGiven = false;
+
                     if (gameMode === 1) {
+                        // 게임 모드 1 설정
+                        document.getElementById('gameContainer1').style.display = 'block';
+                        correctCount1 = 0; // Reset correct count for mode 1
                         document.getElementById('scoreDisplay').textContent = `점수: ${score}`;
                         document.getElementById('questionCounter').textContent = `0 / ${correctWords.length}`;
                         updateProgressBar();
                         displayNextWord();
                     } else {
+                        // 게임 모드 2 설정
+                        document.getElementById('gameContainer2').style.display = 'block';
+                        correctCount2 = 0; // Reset correct count for mode 2
                         document.getElementById('scoreDisplay2').textContent = `점수: ${score}`;
                         document.getElementById('questionCounter2').textContent = `0 / ${correctWords.length}`;
                         updateProgressBar2();
