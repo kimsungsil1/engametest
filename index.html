@@ -140,7 +140,11 @@
             width: 0;
             background-color: #3498db;
             border-radius: 25px;
-            transition: width 0.5s ease-out; /* Changed from 'ease' to 'ease-out' */
+            /* 기존 transition */
+            /* transition: width 0.5s ease-out; */
+
+            /* 수정된 transition: 빠르게 시작해서 천천히 끝남 */
+            transition: width 0.6s cubic-bezier(0.6, 0.0, 0.2, 1);
         }
 
         .status-bar {
