@@ -237,19 +237,6 @@
             }
         }
 
-        /* 정답 및 오답 스타일 */
-        .option.correct {
-            background-color: #2ecc71;
-            color: #fff;
-            border-color: #27ae60;
-        }
-
-        .option.incorrect {
-            background-color: #e74c3c;
-            color: #fff;
-            border-color: #c0392b;
-        }
-
     </style>
 </head>
 <body>
@@ -556,16 +543,6 @@
 
         function displayNextWord2() {
             if (currentWordIndex < correctWords.length) {
-                // 선택지 스타일 초기화
-                const optionElements = document.querySelectorAll('.option');
-                optionElements.forEach(function(element) {
-                    element.style.backgroundColor = ''; // 배경색 초기화
-                    element.style.color = ''; // 글자색 초기화
-                    element.style.borderColor = '#3498db'; // 테두리 색상 초기화
-                    element.style.pointerEvents = 'auto'; // 클릭 가능하도록 설정
-                    element.classList.remove('correct', 'incorrect'); // 클래스 제거
-                });
-
                 const [englishWord, koreanWord] = correctWords[currentWordIndex];
                 document.getElementById('englishWord').textContent = englishWord;
 
@@ -632,19 +609,10 @@
         }
 
         function checkAnswer2(optionId) {
-            const selectedOptionElement = document.getElementById(optionId);
-            const selectedOption = selectedOptionElement.textContent;
+            const selectedOption = document.getElementById(optionId).textContent;
             const [englishWord, koreanWord] = correctWords[currentWordIndex];
 
-            // 모든 선택지 클릭 비활성화
-            const optionElements = document.querySelectorAll('.option');
-            optionElements.forEach(function(element) {
-                element.style.pointerEvents = 'none';
-            });
-
             if (selectedOption === koreanWord) {
-                // 정답일 때 스타일 변경
-                selectedOptionElement.classList.add('correct');
                 document.getElementById('correctSound2').play();
                 score += 10;
                 document.getElementById('scoreDisplay2').textContent = `점수: ${score}`;
@@ -654,20 +622,7 @@
                     updateProgressBar2();
                 }, 1000);
             } else {
-                // 오답일 때 스타일 변경
-                selectedOptionElement.classList.add('incorrect');
                 alert('오답입니다.');
-                // 정답인 선택지 표시 (선택 사항)
-                optionElements.forEach(function(element) {
-                    if (element.textContent === koreanWord) {
-                        element.classList.add('correct'); // 정답인 선택지를 초록색으로 표시
-                    }
-                });
-                currentWordIndex++;
-                setTimeout(() => {
-                    displayNextWord2();
-                    updateProgressBar2();
-                }, 1000);
             }
         }
 
