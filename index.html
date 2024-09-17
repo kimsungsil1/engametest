@@ -241,6 +241,21 @@
 </head>
 <body>
 
+    <!-- 오디오 요소를 게임 컨테이너 밖으로 이동 -->
+    <!-- 게임 시작(한글보고 영어입력) 모드의 정답 소리 -->
+    <audio id="correctSound" preload="auto">
+        <source src="https://actions.google.com/sounds/v1/cartoon/ascending_boing.ogg" type="audio/ogg">
+        <source src="https://actions.google.com/sounds/v1/cartoon/ascending_boing.mp3" type="audio/mpeg"> <!-- mp3 추가 -->
+        Your browser does not support the audio element.
+    </audio>
+
+    <!-- 게임 시작(영어보고 한글선택) 모드의 정답 소리 -->
+    <audio id="correctSound2" preload="auto">
+        <source src="https://actions.google.com/sounds/v1/cartoon/wood_plank_flicks.ogg" type="audio/ogg">
+        <source src="https://actions.google.com/sounds/v1/cartoon/wood_plank_flicks.mp3" type="audio/mpeg"> <!-- mp3 추가 -->
+        Your browser does not support the audio element.
+    </audio>
+
     <div class="container" id="mainMenu">
         <h1>Word Master: 영어 어휘 도전</h1>
         <p>빠르고 재미있는 퀴즈로 어휘력을 키우세요.</p>
@@ -289,13 +304,6 @@
         <div id="questionCounter">0 / 0</div>
 
         <button class="home-btn" onclick="goHome()">홈으로 돌아가기</button>
-
-        <!-- 정답 소리 추가 -->
-        <audio id="correctSound">
-            <source src="https://actions.google.com/sounds/v1/cartoon/ascending_boing.ogg" type="audio/ogg">
-            <source src="https://actions.google.com/sounds/v1/cartoon/ascending_boing.mp3" type="audio/mpeg"> <!-- mp3 추가 -->
-            Your browser does not support the audio element.
-        </audio>
     </div>
 
     <!-- 두 번째 게임 모드 (영어보고 한글선택) -->
@@ -324,13 +332,6 @@
         <div id="questionCounter2">0 / 0</div>
 
         <button class="home-btn" onclick="goHome()">홈으로 돌아가기</button>
-
-        <!-- 정답 소리 추가 -->
-        <audio id="correctSound2">
-            <source src="https://actions.google.com/sounds/v1/cartoon/wood_plank_flicks.ogg" type="audio/ogg">
-            <source src="https://actions.google.com/sounds/v1/cartoon/wood_plank_flicks.mp3" type="audio/mpeg"> <!-- mp3 추가 -->
-            Your browser does not support the audio element.
-        </audio>
     </div>
 
     <!-- 교재 보기 -->
@@ -593,6 +594,10 @@
             const [englishWord] = correctWords[currentWordIndex];
             const userAnswer = document.getElementById('englishInput').value.trim().toLowerCase();
 
+            console.log("checkAnswer 호출됨"); // 디버깅 로그
+            console.log(`사용자 답변: ${userAnswer}`);
+            console.log(`정답: ${englishWord.toLowerCase()}`);
+
             if (userAnswer === englishWord.toLowerCase()) {
                 console.log("정답을 맞췄습니다."); // 디버깅 로그
                 document.getElementById('message').textContent = "정답입니다!";
@@ -642,8 +647,16 @@
             const [englishWord, koreanWord] = correctWords[currentWordIndex];
             const messageElement = document.getElementById('message2');
 
+            console.log(`checkAnswer2 호출됨: ${optionId} 선택됨`);
+
             if (selectedOption === koreanWord) {
-                document.getElementById('correctSound2').play();
+                console.log("정답을 맞췄습니다."); // 디버깅 로그
+                document.getElementById('correctSound2').play().then(() => {
+                    console.log("오디오 재생 성공");
+                }).catch(error => {
+                    console.error("오디오 재생 실패:", error);
+                });
+
                 score += 10;
                 document.getElementById('scoreDisplay2').textContent = `점수: ${score}`;
                 messageElement.textContent = "정답입니다!";
@@ -660,6 +673,7 @@
                     updateProgressBar2();
                 }, 1000);
             } else {
+                console.log("오답을 선택했습니다."); // 디버깅 로그
                 messageElement.textContent = "오답입니다. 다시 시도하세요.";
                 messageElement.style.color = "#e74c3c";
 
@@ -674,7 +688,7 @@
             // 각 문제 시작 시, timeLeft를 초기화
             const timeLimitInput = document.getElementById('timeLimit').value;
             timeLeft = timeLimitInput ? parseInt(timeLimitInput) : 30; // 시간 초기화
-            
+
             document.getElementById('timerDisplay').textContent = `남은 시간: ${timeLeft}초`;
             clearInterval(timer); // 기존 타이머 클리어
             timer = setInterval(() => {
@@ -698,7 +712,7 @@
             // 두 번째 모드 타이머 초기화
             const timeLimitInput = document.getElementById('timeLimit').value;
             timeLeft = timeLimitInput ? parseInt(timeLimitInput) : 30; // 시간 초기화
-            
+
             document.getElementById('timerDisplay2').textContent = `남은 시간: ${timeLeft}초`;
             clearInterval(timer);
             timer = setInterval(() => {
@@ -881,8 +895,13 @@
             const selectedOption = document.getElementById(optionId).textContent;
             const correctAnswer = cefrQuestions[cefrCurrentIndex].answer;
 
+            console.log(`checkCEFRAnswer 호출됨: ${optionId} 선택됨`);
+
             if (selectedOption === correctAnswer) {
+                console.log("정답을 맞췄습니다."); // 디버깅 로그
                 cefrScore++;
+            } else {
+                console.log("오답을 선택했습니다."); // 디버깅 로그
             }
             cefrCurrentIndex++;
             setTimeout(() => {
