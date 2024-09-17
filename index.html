@@ -94,7 +94,15 @@
             transform: translateY(-2px);
         }
 
-        #startButton, #startButton2, #viewPdfButton {
+        #startButton {
+            font-weight: bold;
+        }
+
+        #startButton2 {
+            font-weight: bold;
+        }
+
+        #viewPdfButton {
             font-weight: bold;
         }
 
@@ -166,7 +174,6 @@
         }
 
         .pdf-container {
-            position: relative; /* Added for loading overlay positioning */
             width: 100%;
             max-width: 600px; /* 크기 조정 */
             margin: 20px auto;
@@ -213,42 +220,6 @@
             font-size: 1.5rem;
         }
 
-        /* 로딩 오버레이 스타일 */
-        #loadingOverlay {
-            position: absolute;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background-color: rgba(255, 255, 255, 0.8);
-            display: flex;
-            flex-direction: column;
-            justify-content: center;
-            align-items: center;
-            z-index: 1000;
-            display: none; /* Hidden by default */
-        }
-
-        .spinner {
-            border: 8px solid #f3f3f3; /* Light gray */
-            border-top: 8px solid #3498db; /* Blue */
-            border-radius: 50%;
-            width: 60px;
-            height: 60px;
-            animation: spin 1s linear infinite;
-        }
-
-        #loadingOverlay p {
-            margin-top: 15px;
-            font-size: 1.2rem;
-            color: #3498db;
-        }
-
-        @keyframes spin {
-            0% { transform: rotate(0deg); }
-            100% { transform: rotate(360deg); }
-        }
-
         /* 모바일 화면에서의 최적화 */
         @media (max-width: 600px) {
             canvas {
@@ -269,21 +240,6 @@
     </style>
 </head>
 <body>
-
-    <!-- 오디오 요소를 게임 컨테이너 밖으로 이동 -->
-    <!-- 게임 시작(한글보고 영어입력) 모드의 정답 소리 -->
-    <audio id="correctSound" preload="auto">
-        <source src="https://actions.google.com/sounds/v1/cartoon/ascending_boing.ogg" type="audio/ogg">
-        <source src="https://actions.google.com/sounds/v1/cartoon/ascending_boing.mp3" type="audio/mpeg"> <!-- mp3 추가 -->
-        Your browser does not support the audio element.
-    </audio>
-
-    <!-- 게임 시작(영어보고 한글선택) 모드의 정답 소리 -->
-    <audio id="correctSound2" preload="auto">
-        <source src="https://actions.google.com/sounds/v1/cartoon/wood_plank_flicks.ogg" type="audio/ogg">
-        <source src="https://actions.google.com/sounds/v1/cartoon/wood_plank_flicks.mp3" type="audio/mpeg"> <!-- mp3 추가 -->
-        Your browser does not support the audio element.
-    </audio>
 
     <div class="container" id="mainMenu">
         <h1>Word Master: 영어 어휘 도전</h1>
@@ -333,6 +289,12 @@
         <div id="questionCounter">0 / 0</div>
 
         <button class="home-btn" onclick="goHome()">홈으로 돌아가기</button>
+
+        <!-- 정답 소리 추가 -->
+        <audio id="correctSound">
+            <source src="https://actions.google.com/sounds/v1/cartoon/ascending_boing.ogg" type="audio/ogg">
+            Your browser does not support the audio element.
+        </audio>
     </div>
 
     <!-- 두 번째 게임 모드 (영어보고 한글선택) -->
@@ -361,16 +323,16 @@
         <div id="questionCounter2">0 / 0</div>
 
         <button class="home-btn" onclick="goHome()">홈으로 돌아가기</button>
+
+        <!-- 정답 소리 추가 -->
+        <audio id="correctSound2">
+            <source src="https://actions.google.com/sounds/v1/cartoon/wood_plank_flicks.ogg" type="audio/ogg">
+            Your browser does not support the audio element.
+        </audio>
     </div>
 
     <!-- 교재 보기 -->
     <div class="pdf-container" id="pdfContainer" style="display: none;">
-        <!-- 로딩 오버레이 추가 -->
-        <div id="loadingOverlay">
-            <div class="spinner"></div>
-            <p>로딩 중...</p>
-        </div>
-
         <h1>교재 보기</h1>
         <canvas id="pdfCanvas"></canvas>
         <div class="nav-buttons">
@@ -629,27 +591,13 @@
             const [englishWord] = correctWords[currentWordIndex];
             const userAnswer = document.getElementById('englishInput').value.trim().toLowerCase();
 
-            console.log("checkAnswer 호출됨"); // 디버깅 로그
-            console.log(`사용자 답변: ${userAnswer}`);
-            console.log(`정답: ${englishWord.toLowerCase()}`);
-
             if (userAnswer === englishWord.toLowerCase()) {
-                console.log("정답을 맞췄습니다."); // 디버깅 로그
                 document.getElementById('message').textContent = "정답입니다!";
                 document.getElementById('message').style.color = "#2ecc71";
                 document.getElementById('englishInput').style.borderColor = "#2ecc71"; // 정답 시 테두리 색 변경
                 score += 10;
                 document.getElementById('scoreDisplay').textContent = `점수: ${score}`;
-
-                // 오디오 재생 시도
-                const correctSound = document.getElementById('correctSound');
-                correctSound.currentTime = 0; // 재생 위치 초기화
-                correctSound.play().then(() => {
-                    console.log("오디오 재생 성공");
-                }).catch(error => {
-                    console.error("오디오 재생 실패:", error);
-                });
-
+                document.getElementById('correctSound').play();
                 currentWordIndex++;
                 setTimeout(() => {
                     displayNextWord();
@@ -682,16 +630,8 @@
             const [englishWord, koreanWord] = correctWords[currentWordIndex];
             const messageElement = document.getElementById('message2');
 
-            console.log(`checkAnswer2 호출됨: ${optionId} 선택됨`);
-
             if (selectedOption === koreanWord) {
-                console.log("정답을 맞췄습니다."); // 디버깅 로그
-                document.getElementById('correctSound2').play().then(() => {
-                    console.log("오디오 재생 성공");
-                }).catch(error => {
-                    console.error("오디오 재생 실패:", error);
-                });
-
+                document.getElementById('correctSound2').play();
                 score += 10;
                 document.getElementById('scoreDisplay2').textContent = `점수: ${score}`;
                 messageElement.textContent = "정답입니다!";
@@ -708,7 +648,6 @@
                     updateProgressBar2();
                 }, 1000);
             } else {
-                console.log("오답을 선택했습니다."); // 디버깅 로그
                 messageElement.textContent = "오답입니다. 다시 시도하세요.";
                 messageElement.style.color = "#e74c3c";
 
@@ -723,7 +662,7 @@
             // 각 문제 시작 시, timeLeft를 초기화
             const timeLimitInput = document.getElementById('timeLimit').value;
             timeLeft = timeLimitInput ? parseInt(timeLimitInput) : 30; // 시간 초기화
-
+            
             document.getElementById('timerDisplay').textContent = `남은 시간: ${timeLeft}초`;
             clearInterval(timer); // 기존 타이머 클리어
             timer = setInterval(() => {
@@ -747,7 +686,7 @@
             // 두 번째 모드 타이머 초기화
             const timeLimitInput = document.getElementById('timeLimit').value;
             timeLeft = timeLimitInput ? parseInt(timeLimitInput) : 30; // 시간 초기화
-
+            
             document.getElementById('timerDisplay2').textContent = `남은 시간: ${timeLeft}초`;
             clearInterval(timer);
             timer = setInterval(() => {
@@ -786,9 +725,6 @@
             document.getElementById('mainMenu').style.display = 'none';
             document.getElementById('pdfContainer').style.display = 'block';
 
-            // 로딩 오버레이 표시
-            document.getElementById('loadingOverlay').style.display = 'flex';
-
             const url = 'abcbook.pdf'; // PDF 파일 경로
 
             // PDF 파일 로드
@@ -799,8 +735,6 @@
                 alert('PDF 파일을 로드하는 중 오류가 발생했습니다: ' + error.message);
                 document.getElementById('mainMenu').style.display = 'block';
                 document.getElementById('pdfContainer').style.display = 'none';
-                // 로딩 오버레이 숨기기
-                document.getElementById('loadingOverlay').style.display = 'none';
             });
         }
 
@@ -832,11 +766,6 @@
                         renderPage(pageNumPending);
                         pageNumPending = null;
                     }
-
-                    // 첫 페이지 렌더링 완료 시 로딩 오버레이 숨기기
-                    if (num === 1) {
-                        document.getElementById('loadingOverlay').style.display = 'none';
-                    }
                 });
             });
         }
@@ -847,8 +776,6 @@
                 return;
             }
             pageNum--;
-            // 로딩 오버레이 표시
-            document.getElementById('loadingOverlay').style.display = 'flex';
             renderPage(pageNum);
         }
 
@@ -858,8 +785,6 @@
                 return;
             }
             pageNum++;
-            // 로딩 오버레이 표시
-            document.getElementById('loadingOverlay').style.display = 'flex';
             renderPage(pageNum);
         }
 
@@ -869,8 +794,6 @@
             const pageNumber = parseInt(pageNumberInput, 10);
             if (pageNumber > 0 && pageNumber <= pdfDoc.numPages) {
                 pageNum = pageNumber;
-                // 로딩 오버레이 표시
-                document.getElementById('loadingOverlay').style.display = 'flex';
                 renderPage(pageNum);
             } else {
                 alert('유효한 페이지 번호를 입력하세요.');
@@ -946,13 +869,8 @@
             const selectedOption = document.getElementById(optionId).textContent;
             const correctAnswer = cefrQuestions[cefrCurrentIndex].answer;
 
-            console.log(`checkCEFRAnswer 호출됨: ${optionId} 선택됨`);
-
             if (selectedOption === correctAnswer) {
-                console.log("정답을 맞췄습니다."); // 디버깅 로그
                 cefrScore++;
-            } else {
-                console.log("오답을 선택했습니다."); // 디버깅 로그
             }
             cefrCurrentIndex++;
             setTimeout(() => {
