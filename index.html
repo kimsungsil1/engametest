@@ -273,15 +273,14 @@
     <!-- 오디오 요소를 게임 컨테이너 밖으로 이동 -->
     <!-- 게임 시작(한글보고 영어입력) 모드의 정답 소리 -->
     <audio id="correctSound" preload="auto">
-        <source src="https://actions.google.com/sounds/v1/cartoon/ascending_boing.ogg" type="audio/ogg">
-        <source src="https://actions.google.com/sounds/v1/cartoon/ascending_boing.mp3" type="audio/mpeg"> <!-- mp3 추가 -->
+        <!-- MP3 소스만 사용 -->
+        <source src="https://actions.google.com/sounds/v1/cartoon/ascending_boing.mp3" type="audio/mpeg">
         Your browser does not support the audio element.
     </audio>
 
     <!-- 게임 시작(영어보고 한글선택) 모드의 정답 소리 -->
     <audio id="correctSound2" preload="auto">
-        <source src="https://actions.google.com/sounds/v1/cartoon/wood_plank_flicks.ogg" type="audio/ogg">
-        <source src="https://actions.google.com/sounds/v1/cartoon/wood_plank_flicks.mp3" type="audio/mpeg"> <!-- mp3 추가 -->
+        <source src="https://actions.google.com/sounds/v1/cartoon/wood_plank_flicks.mp3" type="audio/mpeg">
         Your browser does not support the audio element.
     </audio>
 
@@ -306,6 +305,9 @@
 
         <button id="viewPdfButton">교재 보기</button>
         <button id="startCEFRTest">CEFR 레벨 테스트 시작</button>
+
+        <!-- 임시 오디오 테스트 버튼 -->
+        <button onclick="testAudio()">오디오 테스트</button>
     </div>
 
     <!-- 첫 번째 게임 모드 (한글보고 영어입력) -->
@@ -964,6 +966,17 @@
             else if (percentage >= 60) return 'B1';
             else if (percentage >= 45) return 'A2';
             else return 'A1';
+        }
+
+        // 오디오 테스트 함수
+        function testAudio() {
+            const testSound = document.getElementById('correctSound');
+            testSound.currentTime = 0;
+            testSound.play().then(() => {
+                console.log("테스트 오디오 재생 성공");
+            }).catch(error => {
+                console.error("테스트 오디오 재생 실패:", error);
+            });
         }
 
         window.onload = () => {
