@@ -541,35 +541,39 @@
             }
         }
 
-        function displayNextWord2() {
-            if (currentWordIndex < correctWords.length) {
-                const [englishWord, koreanWord] = correctWords[currentWordIndex];
-                document.getElementById('englishWord').textContent = englishWord;
+function displayNextWord2() {
+    if (currentWordIndex < correctWords.length) {
+        const [englishWord, koreanWord] = correctWords[currentWordIndex];
+        document.getElementById('englishWord').textContent = englishWord;
 
-                // 무작위로 3개의 선택지 생성
-                let options = [koreanWord];
-                while (options.length < 3) {
-                    const randomWord = correctWords[Math.floor(Math.random() * correctWords.length)][1];
-                    if (!options.includes(randomWord)) {
-                        options.push(randomWord);
-                    }
-                }
-                shuffleArray(options);
+        // 선택지 배경색 초기화
+        const options = document.querySelectorAll('.option');
+        options.forEach(option => {
+            option.style.backgroundColor = ''; // 모든 선택지 배경색 초기화
+        });
 
-                document.getElementById('option1').textContent = options[0];
-                document.getElementById('option2').textContent = options[1];
-                document.getElementById('option3').textContent = options[2];
-
-                correctAnswerGiven = false;
-                startTimer2(); // 새로운 문제 시작 시 타이머 다시 시작
-                document.getElementById('questionCounter2').textContent = `${currentWordIndex + 1} / ${correctWords.length}`;
-            } else {
-                document.getElementById('englishWord').textContent = '축하합니다! 모든 단어를 맞추셨습니다!';
-                document.getElementById('optionsContainer').style.display = 'none';
-                clearInterval(timer);
+        // 무작위로 3개의 선택지 생성
+        let optionsList = [koreanWord];
+        while (optionsList.length < 3) {
+            const randomWord = correctWords[Math.floor(Math.random() * correctWords.length)][1];
+            if (!optionsList.includes(randomWord)) {
+                optionsList.push(randomWord);
             }
         }
+        shuffleArray(optionsList);
 
+        document.getElementById('option1').textContent = optionsList[0];
+        document.getElementById('option2').textContent = optionsList[1];
+        document.getElementById('option3').textContent = optionsList[2];
+
+        startTimer2(); // 새로운 문제 시작 시 타이머 다시 시작
+        document.getElementById('questionCounter2').textContent = `${currentWordIndex + 1} / ${correctWords.length}`;
+    } else {
+        document.getElementById('englishWord').textContent = '축하합니다! 모든 단어를 맞추셨습니다!';
+        document.getElementById('optionsContainer').style.display = 'none';
+        clearInterval(timer);
+    }
+}
         function checkAnswer() {
             const [englishWord] = correctWords[currentWordIndex];
             const userAnswer = document.getElementById('englishInput').value.trim().toLowerCase();
@@ -612,14 +616,7 @@ function checkAnswer2(optionId) {
     const selectedOption = document.getElementById(optionId).textContent;
     const [englishWord, koreanWord] = correctWords[currentWordIndex];
 
-    // 모든 선택지의 배경색 초기화
-    const options = document.querySelectorAll('.option');
-    options.forEach(option => {
-        option.style.backgroundColor = ''; // 배경색 초기화
-    });
-
-    // 선택된 보기의 배경색 변경
-    document.getElementById(optionId).style.backgroundColor = '#2ecc71'; // 선택된 보기의 배경색을 초록색으로 변경
+    highlightSelectedOption(optionId); // 선택된 보기의 배경색 변경
 
     if (selectedOption === koreanWord) {
         document.getElementById('correctSound2').play();
@@ -627,7 +624,7 @@ function checkAnswer2(optionId) {
         document.getElementById('scoreDisplay2').textContent = `점수: ${score}`;
         currentWordIndex++;
         setTimeout(() => {
-            displayNextWord2();
+            displayNextWord2();  // 다음 문제로 넘어가기
             updateProgressBar2();
         }, 1000);
     } else {
