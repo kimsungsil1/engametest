@@ -294,13 +294,6 @@
         <div id="questionCounter">0 / 0</div>
 
         <button class="home-btn" onclick="goHome()">홈으로 돌아가기</button>
-
-        <!-- 정답 소리 추가 -->
-        <audio id="correctSound">
-            <source src="https://actions.google.com/sounds/v1/cartoon/ascending_boing.ogg" type="audio/ogg">
-            <source src="https://actions.google.com/sounds/v1/cartoon/ascending_boing.mp3" type="audio/mpeg"> <!-- 추가된 mp3 소스 -->
-            Your browser does not support the audio element.
-        </audio>
     </div>
 
     <!-- 두 번째 게임 모드 (영어보고 한글선택) -->
@@ -329,13 +322,6 @@
         <div id="questionCounter2">0 / 0</div>
 
         <button class="home-btn" onclick="goHome()">홈으로 돌아가기</button>
-
-        <!-- 정답 소리 추가 -->
-        <audio id="correctSound2">
-            <source src="https://actions.google.com/sounds/v1/cartoon/wood_plank_flicks.ogg" type="audio/ogg">
-            <source src="https://actions.google.com/sounds/v1/cartoon/wood_plank_flicks.mp3" type="audio/mpeg"> <!-- 추가된 mp3 소스 -->
-            Your browser does not support the audio element.
-        </audio>
     </div>
 
     <!-- 타임어택 게임 모드 -->
@@ -363,13 +349,6 @@
         <div id="taQuestionCounter">0 / 0</div>
 
         <button class="home-btn" onclick="goHome()">홈으로 돌아가기</button>
-
-        <!-- 정답 소리 추가 -->
-        <audio id="taCorrectSound">
-            <source src="https://actions.google.com/sounds/v1/cartoon/ascending_boing.ogg" type="audio/ogg">
-            <source src="https://actions.google.com/sounds/v1/cartoon/ascending_boing.mp3" type="audio/mpeg"> <!-- 추가된 mp3 소스 -->
-            Your browser does not support the audio element.
-        </audio>
     </div>
 
     <!-- 교재 보기 -->
@@ -411,11 +390,32 @@
         제작: 김성실 | 문의: <a href="mailto:sungsil.kim@lcnine.kr">sungsil.kim@lcnine.kr</a>
     </footer>
 
+    <!-- 오디오 요소를 모든 게임 컨테이너 밖으로 이동시키고 preload 추가 -->
+    <audio id="correctSound" preload="auto">
+        <source src="https://actions.google.com/sounds/v1/cartoon/ascending_boing.ogg" type="audio/ogg">
+        <source src="https://actions.google.com/sounds/v1/cartoon/ascending_boing.mp3" type="audio/mpeg">
+        Your browser does not support the audio element.
+    </audio>
+
+    <audio id="correctSound2" preload="auto">
+        <source src="https://actions.google.com/sounds/v1/cartoon/wood_plank_flicks.ogg" type="audio/ogg">
+        <source src="https://actions.google.com/sounds/v1/cartoon/wood_plank_flicks.mp3" type="audio/mpeg">
+        Your browser does not support the audio element.
+    </audio>
+
+    <audio id="taCorrectSound" preload="auto">
+        <source src="https://actions.google.com/sounds/v1/cartoon/ascending_boing.ogg" type="audio/ogg">
+        <source src="https://actions.google.com/sounds/v1/cartoon/ascending_boing.mp3" type="audio/mpeg">
+        Your browser does not support the audio element.
+    </audio>
+
     <script>
         let correctWords = [];
         let currentWordIndex = 0;
         let score = 0;
-        let correctAnswerGiven = false;
+        let correctAnswerGiven1 = false; // 게임 모드 1
+        let correctAnswerGiven2 = false; // 게임 모드 2
+        let correctAnswerGivenTA = false; // 타임어택
         let timeLeft = 30;
         let timer;
         let currentEnglishWord = ""; 
@@ -554,12 +554,13 @@
                     correctWords = shuffleArray(jsonData.slice(1));
                     currentWordIndex = 0;
                     score = 0;
-                    correctAnswerGiven = false;
+                    correctCount1 = 0;
+                    correctCount2 = 0;
+                    taScore = 0;
 
                     if (gameMode === 1) {
                         // 게임 모드 1 설정
                         document.getElementById('gameContainer1').style.display = 'block';
-                        correctCount1 = 0; // Reset correct count for mode 1
                         document.getElementById('scoreDisplay').textContent = `점수: ${score}`;
                         document.getElementById('questionCounter').textContent = `0 / ${correctWords.length}`;
                         updateProgressBar();
@@ -567,7 +568,6 @@
                     } else if (gameMode === 2) {
                         // 게임 모드 2 설정
                         document.getElementById('gameContainer2').style.display = 'block';
-                        correctCount2 = 0; // Reset correct count for mode 2
                         document.getElementById('scoreDisplay2').textContent = `점수: ${score}`;
                         document.getElementById('questionCounter2').textContent = `0 / ${correctWords.length}`;
                         updateProgressBar2();
@@ -631,13 +631,14 @@
                 });
         }
 
-        // 음성 듣기 기능
+        // 음성 듣기 기능 (게임 모드 1)
         function playWordAudio() {
             const utterance = new SpeechSynthesisUtterance(currentEnglishWord);
             utterance.lang = 'en-US';
             speechSynthesis.speak(utterance);
         }
 
+        // 음성 듣기 기능 (타임어택)
         function playTAWordAudio() {
             const utterance = new SpeechSynthesisUtterance(currentEnglishWord);
             utterance.lang = 'en-US';
@@ -653,8 +654,8 @@
                 document.getElementById('message').textContent = '';
                 document.getElementById('englishInput').style.borderColor = "#3498db"; // 초기화
                 document.getElementById('englishInput').focus();
-                correctAnswerGiven = false;
-                startTimer(); // 새로운 문제 시작 시 타이머 다시 시작
+                correctAnswerGiven1 = false;
+                startTimer1(); // 새로운 문제 시작 시 타이머 다시 시작
                 document.getElementById('questionCounter').textContent = `${currentWordIndex + 1} / ${correctWords.length}`;
             } else {
                 document.getElementById('koreanWord').textContent = '축하합니다! 모든 단어를 맞추셨습니다!';
@@ -700,7 +701,7 @@
                 messageElement.textContent = "";
                 messageElement.style.color = "#2c3e50";
 
-                correctAnswerGiven = false;
+                correctAnswerGiven2 = false;
                 startTimer2(); // 새로운 문제 시작 시 타이머 다시 시작
                 document.getElementById('questionCounter2').textContent = `${currentWordIndex + 1} / ${correctWords.length}`;
             } else {
@@ -719,7 +720,7 @@
                 document.getElementById('taMessage').textContent = '';
                 document.getElementById('taEnglishInput').style.borderColor = "#3498db"; // 초기화
                 document.getElementById('taEnglishInput').focus();
-                correctAnswerGiven = false;
+                correctAnswerGivenTA = false;
                 document.getElementById('taQuestionCounter').textContent = `${currentWordIndex + 1} / ${correctWords.length}`;
             } else {
                 endTimeAttackGame();
@@ -737,23 +738,24 @@
                 score += 10;
                 correctCount1++; // Increment correct count for mode 1
                 document.getElementById('scoreDisplay').textContent = `점수: ${score}`;
-                document.getElementById('correctSound').play();
+                const correctSound = document.getElementById('correctSound');
+                correctSound.play().catch(error => console.error("Audio play error:", error));
                 currentWordIndex++;
                 setTimeout(() => {
                     displayNextWord();
                     updateProgressBar();
                 }, 1000);
-            } else if (!correctAnswerGiven) {
+            } else if (!correctAnswerGiven1) {
                 document.getElementById('message').textContent = `오답입니다. 정답은 '${englishWord}' 입니다. 다시 입력하세요.`;
                 document.getElementById('message').style.color = "#e74c3c";
                 document.getElementById('englishInput').style.borderColor = "#e74c3c"; // 오답 시 테두리 색 변경
-                correctAnswerGiven = true;
+                correctAnswerGiven1 = true;
 
                 // 진동 추가
                 if (navigator.vibrate) {
                     navigator.vibrate(200); // 200ms 진동
                 }
-            } else if (correctAnswerGiven && userAnswer === englishWord.toLowerCase()) {
+            } else if (correctAnswerGiven1 && userAnswer === englishWord.toLowerCase()) {
                 document.getElementById('message').textContent = "정확하게 입력하셨습니다!";
                 document.getElementById('message').style.color = "#2ecc71";
                 document.getElementById('englishInput').style.borderColor = "#2ecc71"; // 다시 정답 맞춤
@@ -786,21 +788,22 @@
                 document.getElementById('taEnglishInput').style.borderColor = "#2ecc71"; // 정답 시 테두리 색 변경
                 taScore += 10;
                 document.getElementById('taScoreDisplay').textContent = `점수: ${taScore}`;
-                document.getElementById('taCorrectSound').play();
+                const taCorrectSound = document.getElementById('taCorrectSound');
+                taCorrectSound.play().catch(error => console.error("Audio play error:", error));
                 currentWordIndex++;
                 displayNextTimeAttackWord();
                 updateTATimeBar();
-            } else if (!correctAnswerGiven) {
+            } else if (!correctAnswerGivenTA) {
                 document.getElementById('taMessage').textContent = `오답입니다. 정답은 '${englishWord}' 입니다. 다시 입력하세요.`;
                 document.getElementById('taMessage').style.color = "#e74c3c";
                 document.getElementById('taEnglishInput').style.borderColor = "#e74c3c"; // 오답 시 테두리 색 변경
-                correctAnswerGiven = true;
+                correctAnswerGivenTA = true;
 
                 // 진동 추가
                 if (navigator.vibrate) {
                     navigator.vibrate(200); // 200ms 진동
                 }
-            } else if (correctAnswerGiven && userAnswer === englishWord.toLowerCase()) {
+            } else if (correctAnswerGivenTA && userAnswer === englishWord.toLowerCase()) {
                 document.getElementById('taMessage').textContent = "정확하게 입력하셨습니다!";
                 document.getElementById('taMessage').style.color = "#2ecc71";
                 document.getElementById('taEnglishInput').style.borderColor = "#2ecc71"; // 다시 정답 맞춤
@@ -826,7 +829,7 @@
             const messageElement = document.getElementById('message2');
 
             if (selectedOption === koreanWord) {
-                document.getElementById('correctSound2').play();
+                document.getElementById('correctSound2').play().catch(error => console.error("Audio play error:", error));
                 score += 10;
                 correctCount2++; // Increment correct count for mode 2
                 document.getElementById('scoreDisplay2').textContent = `점수: ${score}`;
@@ -859,51 +862,7 @@
             }
         }
 
-        function checkTAAAnswer() {
-            const [englishWord] = correctWords[currentWordIndex];
-            const userAnswer = document.getElementById('taEnglishInput').value.trim().toLowerCase();
-
-            if (userAnswer === englishWord.toLowerCase()) {
-                document.getElementById('taMessage').textContent = "정답입니다!";
-                document.getElementById('taMessage').style.color = "#2ecc71";
-                document.getElementById('taEnglishInput').style.borderColor = "#2ecc71"; // 정답 시 테두리 색 변경
-                taScore += 10;
-                document.getElementById('taScoreDisplay').textContent = `점수: ${taScore}`;
-                document.getElementById('taCorrectSound').play();
-                currentWordIndex++;
-                displayNextTimeAttackWord();
-                updateTATimeBar();
-            } else if (!correctAnswerGiven) {
-                document.getElementById('taMessage').textContent = `오답입니다. 정답은 '${englishWord}' 입니다. 다시 입력하세요.`;
-                document.getElementById('taMessage').style.color = "#e74c3c";
-                document.getElementById('taEnglishInput').style.borderColor = "#e74c3c"; // 오답 시 테두리 색 변경
-                correctAnswerGiven = true;
-
-                // 진동 추가
-                if (navigator.vibrate) {
-                    navigator.vibrate(200); // 200ms 진동
-                }
-            } else if (correctAnswerGiven && userAnswer === englishWord.toLowerCase()) {
-                document.getElementById('taMessage').textContent = "정확하게 입력하셨습니다!";
-                document.getElementById('taMessage').style.color = "#2ecc71";
-                document.getElementById('taEnglishInput').style.borderColor = "#2ecc71"; // 다시 정답 맞춤
-                taScore += 5;
-                document.getElementById('taScoreDisplay').textContent = `점수: ${taScore}`;
-                currentWordIndex++;
-                displayNextTimeAttackWord();
-                updateTATimeBar();
-            } else {
-                document.getElementById('taMessage').textContent = "정확하게 입력하세요!";
-                document.getElementById('taMessage').style.color = "#e74c3c";
-
-                // 추가 진동 (선택 사항)
-                if (navigator.vibrate) {
-                    navigator.vibrate(200); // 200ms 진동
-                }
-            }
-        }
-
-        function startTimer() {
+        function startTimer1() {
             // 각 문제 시작 시, timeLeft를 초기화
             const timeLimitInput = document.getElementById('timeLimit').value;
             timeLeft = timeLimitInput ? parseInt(timeLimitInput) : 30; // 시간 초기화
@@ -914,7 +873,7 @@
                 timeLeft--;
                 document.getElementById('timerDisplay').textContent = `남은 시간: ${timeLeft}초`;
 
-                if (timeLeft <= 10 && !correctAnswerGiven) {
+                if (timeLeft <= 10 && !correctAnswerGiven1) {
                     // 시간 10초 남았을 때 힌트 제공
                     document.getElementById('message').textContent = `힌트: 단어의 첫 글자는 '${currentEnglishWord[0].toUpperCase()}' 입니다.`;
                     document.getElementById('message').style.color = "#f1c40f"; // 힌트 색상
