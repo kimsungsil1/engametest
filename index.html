@@ -263,7 +263,7 @@
 
         <button id="startButton">게임 시작(한글보고 영어입력)</button>
         <button id="startButton2">게임 시작(영어보고 한글선택)</button>
-
+        <button id="startTimeAttack">타임어택 게임 시작</button>
         <button id="viewPdfButton">교재 보기</button>
         <button id="startCEFRTest">CEFR 레벨 테스트 시작</button>
     </div>
@@ -337,6 +337,40 @@
         </audio>
     </div>
 
+    <!-- 타임어택 게임 모드 -->
+    <div class="container" id="gameContainerTimeAttack" style="display:none;">
+        <div class="status-bar">
+            <div id="timeAttackScoreDisplay">점수: 0</div>
+            <div id="timeAttackTimerDisplay">남은 시간: 60초</div>
+        </div>
+
+        <div class="word-container">
+            <div class="word-item" id="timeAttackWord" style="font-size: 1.5rem; margin-bottom: 20px;">여기에 단어가 표시됩니다</div>
+            <input type="text" id="timeAttackInput" placeholder="정답을 입력하세요" onkeypress="handleTimeAttackKeyPress(event)" autocomplete="off">
+        </div>
+
+        <p id="timeAttackMessage"></p>
+
+        <button id="timeAttackSubmitButton" onclick="checkTimeAttackAnswer()">제출</button>
+        <button id="timeAttackSkipButton" class="next-btn" onclick="skipTimeAttackWord()">다음으로 넘기기</button>
+        <button id="timeAttackListenButton" onclick="playWordAudio()">음성 듣기</button>
+
+        <div class="progress-bar">
+            <div class="progress-bar-fill" id="timeAttackProgressBar"></div>
+        </div>
+
+        <div id="timeAttackQuestionCounter">0 / 0</div>
+
+        <button class="home-btn" onclick="goHome()">홈으로 돌아가기</button>
+
+        <!-- 정답 소리 추가 -->
+        <audio id="timeAttackCorrectSound">
+            <source src="https://actions.google.com/sounds/v1/cartoon/ascending_boing.ogg" type="audio/ogg">
+            <source src="https://actions.google.com/sounds/v1/cartoon/ascending_boing.mp3" type="audio/mpeg"> <!-- 추가된 mp3 소스 -->
+            Your browser does not support the audio element.
+        </audio>
+    </div>
+
     <!-- 교재 보기 -->
     <div class="pdf-container" id="pdfContainer" style="display: none;">
         <h1>교재 보기</h1>
@@ -389,7 +423,7 @@
             pageRendering = false,
             pageNumPending = null;
 
-        let gameMode = 1; // 1: 한글보고 영어입력, 2: 영어보고 한글선택
+        let gameMode = 1; // 1: 한글보고 영어입력, 2: 영어보고 한글선택, 3: 타임어택
 
         // CEFR 테스트 관련 변수
         let cefrQuestions = [];
@@ -430,6 +464,12 @@
         let correctCount1 = 0; // For game mode 1
         let correctCount2 = 0; // For game mode 2
 
+        // 타임어택 관련 변수
+        let timeAttackScore = 0;
+        let timeAttackTimeLeft = 60; // 기본 60초
+        let timerTimeAttack;
+        let timeAttackWordIndex = 0;
+
         // 게임 시작 버튼에 대한 이벤트 리스너
         document.getElementById('startButton').addEventListener('click', function() {
             gameMode = 1;
@@ -439,6 +479,12 @@
         // 영어보고 한글선택 게임 시작 버튼
         document.getElementById('startButton2').addEventListener('click', function() {
             gameMode = 2;
+            startGame();
+        });
+
+        // 타임어택 게임 시작 버튼
+        document.getElementById('startTimeAttack').addEventListener('click', function() {
+            gameMode = 3;
             startGame();
         });
 
@@ -459,7 +505,11 @@
         function startGame() {
             const level = document.getElementById('levelSelect').value;
             const timeLimitInput = document.getElementById('timeLimit').value;
-            timeLeft = timeLimitInput ? parseInt(timeLimitInput) : 30; // 사용자 정의 시간 제한 또는 기본 30초
+            if (gameMode === 3) {
+                timeAttackTimeLeft = timeLimitInput ? parseInt(timeLimitInput) : 60;
+            } else {
+                timeLeft = timeLimitInput ? parseInt(timeLimitInput) : 30; // 사용자 정의 시간 제한 또는 기본 30초
+            }
             if (level) {
                 document.getElementById('mainMenu').style.display = 'none';
                 loadWords(level); // loadWords 호출 후 게임 설정
@@ -508,7 +558,7 @@
                         document.getElementById('questionCounter').textContent = `0 / ${correctWords.length}`;
                         updateProgressBar();
                         displayNextWord();
-                    } else {
+                    } else if (gameMode === 2) {
                         // 게임 모드 2 설정
                         document.getElementById('gameContainer2').style.display = 'block';
                         correctCount2 = 0; // Reset correct count for mode 2
@@ -516,6 +566,16 @@
                         document.getElementById('questionCounter2').textContent = `0 / ${correctWords.length}`;
                         updateProgressBar2();
                         displayNextWord2();
+                    } else if (gameMode === 3) {
+                        // 타임어택 모드 설정
+                        document.getElementById('gameContainerTimeAttack').style.display = 'block';
+                        timeAttackScore = 0;
+                        timeAttackWordIndex = 0;
+                        document.getElementById('timeAttackScoreDisplay').textContent = `점수: ${timeAttackScore}`;
+                        document.getElementById('timeAttackQuestionCounter').textContent = `0 / ${correctWords.length}`;
+                        updateTimeAttackProgressBar();
+                        startTimeAttackTimer();
+                        displayNextTimeAttackWord();
                     }
                 })
                 .catch(error => {
@@ -523,6 +583,7 @@
                     document.getElementById('mainMenu').style.display = 'block';
                     document.getElementById('gameContainer1').style.display = 'none';
                     document.getElementById('gameContainer2').style.display = 'none';
+                    document.getElementById('gameContainerTimeAttack').style.display = 'none';
                 });
         }
 
@@ -730,6 +791,21 @@
             }, 1000);
         }
 
+        // 타임어택 타이머 시작
+        function startTimeAttackTimer() {
+            document.getElementById('timeAttackTimerDisplay').textContent = `남은 시간: ${timeAttackTimeLeft}초`;
+            clearInterval(timerTimeAttack);
+            timerTimeAttack = setInterval(() => {
+                timeAttackTimeLeft--;
+                document.getElementById('timeAttackTimerDisplay').textContent = `남은 시간: ${timeAttackTimeLeft}초`;
+
+                if (timeAttackTimeLeft <= 0) {
+                    clearInterval(timerTimeAttack);
+                    endTimeAttackGame();
+                }
+            }, 1000);
+        }
+
         function updateProgressBar() {
             const progressBar = document.getElementById('progressBar');
             const progress = (correctCount1 / correctWords.length) * 100;
@@ -742,13 +818,22 @@
             progressBar.style.width = `${progress}%`;
         }
 
+        // 타임어택 진행률 업데이트
+        function updateTimeAttackProgressBar() {
+            const progressBar = document.getElementById('timeAttackProgressBar');
+            const progress = (timeAttackWordIndex / correctWords.length) * 100;
+            progressBar.style.width = `${progress}%`;
+        }
+
         function goHome() {
             document.getElementById('gameContainer1').style.display = 'none';
             document.getElementById('gameContainer2').style.display = 'none';
+            document.getElementById('gameContainerTimeAttack').style.display = 'none'; // 타임어택 컨테이너 숨기기
             document.getElementById('pdfContainer').style.display = 'none'; // 교재 보기 화면 숨기기
             document.getElementById('cefrTestContainer').style.display = 'none'; // CEFR 테스트 화면 숨기기
             document.getElementById('mainMenu').style.display = 'block';
-            clearInterval(timer); // 타이머 중지
+            clearInterval(timer); // 기존 타이머 중지
+            clearInterval(timerTimeAttack); // 타임어택 타이머 중지
         }
 
         function viewPdf() {
@@ -837,6 +922,13 @@
             }
         }
 
+        // 타임어택 엔터키 입력 이벤트 처리
+        function handleTimeAttackKeyPress(event) {
+            if (event.key === "Enter" || event.keyCode === 13) {
+                checkTimeAttackAnswer(); // 엔터키를 누르면 정답을 체크
+            }
+        }
+
         // 단어 넘기기
         function skipWord() {
             const [englishWord, koreanWord] = correctWords[currentWordIndex];
@@ -854,12 +946,60 @@
                     displayNextWord();
                     updateProgressBar();
                 }, 2000);
-            } else {
+            } else if (gameMode === 2) {
                 setTimeout(() => {
                     displayNextWord2();
                     updateProgressBar2();
                 }, 2000);
             }
+        }
+
+        // 타임어택 단어 넘기기
+        function skipTimeAttackWord() {
+            const [englishWord, koreanWord] = correctWords[timeAttackWordIndex];
+            document.getElementById('timeAttackMessage').textContent = `정답은 '${englishWord}' 입니다.`;
+            document.getElementById('timeAttackMessage').style.color = "#e74c3c";
+            timeAttackWordIndex++;
+            updateTimeAttackProgressBar();
+            displayNextTimeAttackWord();
+        }
+
+        // 타임어택 정답 체크
+        function checkTimeAttackAnswer() {
+            const [englishWord, koreanWord] = correctWords[timeAttackWordIndex];
+            const userAnswer = document.getElementById('timeAttackInput').value.trim().toLowerCase();
+
+            if (userAnswer === englishWord.toLowerCase()) {
+                document.getElementById('timeAttackMessage').textContent = "정답입니다!";
+                document.getElementById('timeAttackMessage').style.color = "#2ecc71";
+                document.getElementById('timeAttackInput').style.borderColor = "#2ecc71"; // 정답 시 테두리 색 변경
+                timeAttackScore += 10;
+                document.getElementById('timeAttackScoreDisplay').textContent = `점수: ${timeAttackScore}`;
+                document.getElementById('timeAttackCorrectSound').play();
+                timeAttackWordIndex++;
+                updateTimeAttackProgressBar();
+                displayNextTimeAttackWord();
+            } else {
+                document.getElementById('timeAttackMessage').textContent = `오답입니다. 정답은 '${englishWord}' 입니다.`;
+                document.getElementById('timeAttackMessage').style.color = "#e74c3c";
+                document.getElementById('timeAttackInput').style.borderColor = "#e74c3c"; // 오답 시 테두리 색 변경
+
+                // 진동 추가
+                if (navigator.vibrate) {
+                    navigator.vibrate(200); // 200ms 진동
+                }
+            }
+        }
+
+        // 타임어택 게임 종료
+        function endTimeAttackGame() {
+            document.getElementById('timeAttackWord').textContent = '타임어택 종료!';
+            document.getElementById('timeAttackInput').style.display = 'none';
+            document.getElementById('timeAttackSubmitButton').style.display = 'none';
+            document.getElementById('timeAttackSkipButton').style.display = 'none';
+            document.getElementById('timeAttackListenButton').style.display = 'none';
+            document.getElementById('timeAttackMessage').textContent = `최종 점수: ${timeAttackScore}`;
+            clearInterval(timerTimeAttack);
         }
 
         // CEFR 레벨 테스트 시작
@@ -921,6 +1061,7 @@
             document.getElementById('mainMenu').style.display = 'block';
             document.getElementById('gameContainer1').style.display = 'none';
             document.getElementById('gameContainer2').style.display = 'none';
+            document.getElementById('gameContainerTimeAttack').style.display = 'none'; // 타임어택 컨테이너 숨기기
             document.getElementById('pdfContainer').style.display = 'none';
             document.getElementById('cefrTestContainer').style.display = 'none';
         };
