@@ -259,11 +259,12 @@
         </select>
 
         <label for="timeLimit">시간 제한 (초): </label>
-        <input type="number" id="timeLimit" placeholder="30" min="10" max="60">
+        <input type="number" id="timeLimit" placeholder="30" min="10" max="300">
 
         <button id="startButton">게임 시작(한글보고 영어입력)</button>
         <button id="startButton2">게임 시작(영어보고 한글선택)</button>
-        <button id="startTimeAttack">타임어택 게임 시작</button>
+        <button id="startTimeAttackButton">타임어택 게임 시작</button>
+
         <button id="viewPdfButton">교재 보기</button>
         <button id="startCEFRTest">CEFR 레벨 테스트 시작</button>
     </div>
@@ -338,33 +339,33 @@
     </div>
 
     <!-- 타임어택 게임 모드 -->
-    <div class="container" id="gameContainerTimeAttack" style="display:none;">
+    <div class="container" id="timeAttackContainer" style="display:none;">
         <div class="status-bar">
-            <div id="timeAttackScoreDisplay">점수: 0</div>
-            <div id="timeAttackTimerDisplay">남은 시간: 60초</div>
+            <div id="taScoreDisplay">점수: 0</div>
+            <div id="taTimerDisplay">남은 시간: 60초</div>
         </div>
 
         <div class="word-container">
-            <div class="word-item" id="timeAttackWord" style="font-size: 1.5rem; margin-bottom: 20px;">여기에 단어가 표시됩니다</div>
-            <input type="text" id="timeAttackInput" placeholder="정답을 입력하세요" onkeypress="handleTimeAttackKeyPress(event)" autocomplete="off">
+            <div class="word-item" id="taKoreanWord" style="font-size: 1.5rem; margin-bottom: 20px;">여기에 한글 단어가 표시됩니다</div>
+            <input type="text" id="taEnglishInput" placeholder="영어 단어를 입력하세요" onkeypress="handleTAKeyPress(event)" autocomplete="off">
         </div>
 
-        <p id="timeAttackMessage"></p>
+        <p id="taMessage"></p>
 
-        <button id="timeAttackSubmitButton" onclick="checkTimeAttackAnswer()">제출</button>
-        <button id="timeAttackSkipButton" class="next-btn" onclick="skipTimeAttackWord()">다음으로 넘기기</button>
-        <button id="timeAttackListenButton" onclick="playWordAudio()">음성 듣기</button>
+        <button id="taSubmitButton" onclick="checkTAAAnswer()">제출</button>
+        <button id="taSkipButton" class="next-btn" onclick="skipTAWord()">다음으로 넘기기</button>
+        <button id="taListenButton" onclick="playTAWordAudio()">음성 듣기</button>
 
         <div class="progress-bar">
-            <div class="progress-bar-fill" id="timeAttackProgressBar"></div>
+            <div class="progress-bar-fill" id="taProgressBar"></div>
         </div>
 
-        <div id="timeAttackQuestionCounter">0 / 0</div>
+        <div id="taQuestionCounter">0 / 0</div>
 
         <button class="home-btn" onclick="goHome()">홈으로 돌아가기</button>
 
         <!-- 정답 소리 추가 -->
-        <audio id="timeAttackCorrectSound">
+        <audio id="taCorrectSound">
             <source src="https://actions.google.com/sounds/v1/cartoon/ascending_boing.ogg" type="audio/ogg">
             <source src="https://actions.google.com/sounds/v1/cartoon/ascending_boing.mp3" type="audio/mpeg"> <!-- 추가된 mp3 소스 -->
             Your browser does not support the audio element.
@@ -463,12 +464,8 @@
         // 추가된 변수들
         let correctCount1 = 0; // For game mode 1
         let correctCount2 = 0; // For game mode 2
-
-        // 타임어택 관련 변수
-        let timeAttackScore = 0;
-        let timeAttackTimeLeft = 60; // 기본 60초
-        let timerTimeAttack;
-        let timeAttackWordIndex = 0;
+        let taScore = 0; // For Time Attack mode
+        let taTotalTime = 60; // Default Time Attack time in seconds
 
         // 게임 시작 버튼에 대한 이벤트 리스너
         document.getElementById('startButton').addEventListener('click', function() {
@@ -483,9 +480,9 @@
         });
 
         // 타임어택 게임 시작 버튼
-        document.getElementById('startTimeAttack').addEventListener('click', function() {
+        document.getElementById('startTimeAttackButton').addEventListener('click', function() {
             gameMode = 3;
-            startGame();
+            startTimeAttackGame();
         });
 
         // 교재 보기 버튼
@@ -505,14 +502,23 @@
         function startGame() {
             const level = document.getElementById('levelSelect').value;
             const timeLimitInput = document.getElementById('timeLimit').value;
-            if (gameMode === 3) {
-                timeAttackTimeLeft = timeLimitInput ? parseInt(timeLimitInput) : 60;
-            } else {
-                timeLeft = timeLimitInput ? parseInt(timeLimitInput) : 30; // 사용자 정의 시간 제한 또는 기본 30초
-            }
+            timeLeft = timeLimitInput ? parseInt(timeLimitInput) : 30; // 사용자 정의 시간 제한 또는 기본 30초
             if (level) {
                 document.getElementById('mainMenu').style.display = 'none';
                 loadWords(level); // loadWords 호출 후 게임 설정
+            } else {
+                alert("레벨을 선택해주세요!");
+            }
+        }
+
+        function startTimeAttackGame() {
+            const level = document.getElementById('levelSelect').value;
+            const timeLimitInput = document.getElementById('timeLimit').value;
+            taTotalTime = timeLimitInput ? parseInt(timeLimitInput) : 60; // 사용자 정의 타임어택 시간 또는 기본 60초
+            timeLeft = taTotalTime;
+            if (level) {
+                document.getElementById('mainMenu').style.display = 'none';
+                loadWordsForTimeAttack(level);
             } else {
                 alert("레벨을 선택해주세요!");
             }
@@ -566,16 +572,6 @@
                         document.getElementById('questionCounter2').textContent = `0 / ${correctWords.length}`;
                         updateProgressBar2();
                         displayNextWord2();
-                    } else if (gameMode === 3) {
-                        // 타임어택 모드 설정
-                        document.getElementById('gameContainerTimeAttack').style.display = 'block';
-                        timeAttackScore = 0;
-                        timeAttackWordIndex = 0;
-                        document.getElementById('timeAttackScoreDisplay').textContent = `점수: ${timeAttackScore}`;
-                        document.getElementById('timeAttackQuestionCounter').textContent = `0 / ${correctWords.length}`;
-                        updateTimeAttackProgressBar();
-                        startTimeAttackTimer();
-                        displayNextTimeAttackWord();
                     }
                 })
                 .catch(error => {
@@ -583,12 +579,66 @@
                     document.getElementById('mainMenu').style.display = 'block';
                     document.getElementById('gameContainer1').style.display = 'none';
                     document.getElementById('gameContainer2').style.display = 'none';
-                    document.getElementById('gameContainerTimeAttack').style.display = 'none';
+                    document.getElementById('timeAttackContainer').style.display = 'none';
+                });
+        }
+
+        function loadWordsForTimeAttack(level) {
+            let fileName;
+
+            if (level === 'A1') {
+                fileName = 'A1WORD.xlsx';
+            } else if (level === 'A2') {
+                fileName = 'A2WORD.xlsx';
+            } else if (level === 'B1') {
+                fileName = 'B1WORD.xlsx';
+            } else if (level === 'B2') {
+                fileName = 'B2WORD.xlsx';
+            } else if (level === 'C1') {
+                fileName = 'C1WORD.xlsx';
+            }
+
+            fetch(fileName)
+                .then(response => {
+                    if (!response.ok) {
+                        throw new Error('파일을 불러오지 못했습니다.');
+                    }
+                    return response.arrayBuffer();
+                })
+                .then(data => {
+                    const workbook = XLSX.read(data, { type: 'array' });
+                    const sheetName = workbook.SheetNames[0];
+                    const sheet = workbook.Sheets[sheetName];
+                    const jsonData = XLSX.utils.sheet_to_json(sheet, { header: 1 });
+                    correctWords = shuffleArray(jsonData.slice(1));
+                    currentWordIndex = 0;
+                    taScore = 0;
+
+                    // 게임 모드 3 설정
+                    document.getElementById('timeAttackContainer').style.display = 'block';
+                    document.getElementById('taScoreDisplay').textContent = `점수: ${taScore}`;
+                    document.getElementById('taQuestionCounter').textContent = `0 / ${correctWords.length}`;
+                    updateTATimeBar();
+                    displayNextTimeAttackWord();
+                    startTATimer();
+                })
+                .catch(error => {
+                    alert('단어 파일을 불러오는 중 오류가 발생했습니다: ' + error.message);
+                    document.getElementById('mainMenu').style.display = 'block';
+                    document.getElementById('gameContainer1').style.display = 'none';
+                    document.getElementById('gameContainer2').style.display = 'none';
+                    document.getElementById('timeAttackContainer').style.display = 'none';
                 });
         }
 
         // 음성 듣기 기능
         function playWordAudio() {
+            const utterance = new SpeechSynthesisUtterance(currentEnglishWord);
+            utterance.lang = 'en-US';
+            speechSynthesis.speak(utterance);
+        }
+
+        function playTAWordAudio() {
             const utterance = new SpeechSynthesisUtterance(currentEnglishWord);
             utterance.lang = 'en-US';
             speechSynthesis.speak(utterance);
@@ -660,6 +710,22 @@
             }
         }
 
+        function displayNextTimeAttackWord() {
+            if (currentWordIndex < correctWords.length && timeLeft > 0) {
+                const [englishWord, koreanWord] = correctWords[currentWordIndex];
+                currentEnglishWord = englishWord;
+                document.getElementById('taKoreanWord').textContent = koreanWord;
+                document.getElementById('taEnglishInput').value = '';
+                document.getElementById('taMessage').textContent = '';
+                document.getElementById('taEnglishInput').style.borderColor = "#3498db"; // 초기화
+                document.getElementById('taEnglishInput').focus();
+                correctAnswerGiven = false;
+                document.getElementById('taQuestionCounter').textContent = `${currentWordIndex + 1} / ${correctWords.length}`;
+            } else {
+                endTimeAttackGame();
+            }
+        }
+
         function checkAnswer() {
             const [englishWord] = correctWords[currentWordIndex];
             const userAnswer = document.getElementById('englishInput').value.trim().toLowerCase();
@@ -710,6 +776,50 @@
             }
         }
 
+        function checkTAAAnswer() {
+            const [englishWord] = correctWords[currentWordIndex];
+            const userAnswer = document.getElementById('taEnglishInput').value.trim().toLowerCase();
+
+            if (userAnswer === englishWord.toLowerCase()) {
+                document.getElementById('taMessage').textContent = "정답입니다!";
+                document.getElementById('taMessage').style.color = "#2ecc71";
+                document.getElementById('taEnglishInput').style.borderColor = "#2ecc71"; // 정답 시 테두리 색 변경
+                taScore += 10;
+                document.getElementById('taScoreDisplay').textContent = `점수: ${taScore}`;
+                document.getElementById('taCorrectSound').play();
+                currentWordIndex++;
+                displayNextTimeAttackWord();
+                updateTATimeBar();
+            } else if (!correctAnswerGiven) {
+                document.getElementById('taMessage').textContent = `오답입니다. 정답은 '${englishWord}' 입니다. 다시 입력하세요.`;
+                document.getElementById('taMessage').style.color = "#e74c3c";
+                document.getElementById('taEnglishInput').style.borderColor = "#e74c3c"; // 오답 시 테두리 색 변경
+                correctAnswerGiven = true;
+
+                // 진동 추가
+                if (navigator.vibrate) {
+                    navigator.vibrate(200); // 200ms 진동
+                }
+            } else if (correctAnswerGiven && userAnswer === englishWord.toLowerCase()) {
+                document.getElementById('taMessage').textContent = "정확하게 입력하셨습니다!";
+                document.getElementById('taMessage').style.color = "#2ecc71";
+                document.getElementById('taEnglishInput').style.borderColor = "#2ecc71"; // 다시 정답 맞춤
+                taScore += 5;
+                document.getElementById('taScoreDisplay').textContent = `점수: ${taScore}`;
+                currentWordIndex++;
+                displayNextTimeAttackWord();
+                updateTATimeBar();
+            } else {
+                document.getElementById('taMessage').textContent = "정확하게 입력하세요!";
+                document.getElementById('taMessage').style.color = "#e74c3c";
+
+                // 추가 진동 (선택 사항)
+                if (navigator.vibrate) {
+                    navigator.vibrate(200); // 200ms 진동
+                }
+            }
+        }
+
         function checkAnswer2(optionId) {
             const selectedOption = document.getElementById(optionId).textContent;
             const [englishWord, koreanWord] = correctWords[currentWordIndex];
@@ -743,6 +853,50 @@
                 document.getElementById(optionId).style.pointerEvents = "none"; // 추가 클릭 방지
 
                 // 진동 추가
+                if (navigator.vibrate) {
+                    navigator.vibrate(200); // 200ms 진동
+                }
+            }
+        }
+
+        function checkTAAAnswer() {
+            const [englishWord] = correctWords[currentWordIndex];
+            const userAnswer = document.getElementById('taEnglishInput').value.trim().toLowerCase();
+
+            if (userAnswer === englishWord.toLowerCase()) {
+                document.getElementById('taMessage').textContent = "정답입니다!";
+                document.getElementById('taMessage').style.color = "#2ecc71";
+                document.getElementById('taEnglishInput').style.borderColor = "#2ecc71"; // 정답 시 테두리 색 변경
+                taScore += 10;
+                document.getElementById('taScoreDisplay').textContent = `점수: ${taScore}`;
+                document.getElementById('taCorrectSound').play();
+                currentWordIndex++;
+                displayNextTimeAttackWord();
+                updateTATimeBar();
+            } else if (!correctAnswerGiven) {
+                document.getElementById('taMessage').textContent = `오답입니다. 정답은 '${englishWord}' 입니다. 다시 입력하세요.`;
+                document.getElementById('taMessage').style.color = "#e74c3c";
+                document.getElementById('taEnglishInput').style.borderColor = "#e74c3c"; // 오답 시 테두리 색 변경
+                correctAnswerGiven = true;
+
+                // 진동 추가
+                if (navigator.vibrate) {
+                    navigator.vibrate(200); // 200ms 진동
+                }
+            } else if (correctAnswerGiven && userAnswer === englishWord.toLowerCase()) {
+                document.getElementById('taMessage').textContent = "정확하게 입력하셨습니다!";
+                document.getElementById('taMessage').style.color = "#2ecc71";
+                document.getElementById('taEnglishInput').style.borderColor = "#2ecc71"; // 다시 정답 맞춤
+                taScore += 5;
+                document.getElementById('taScoreDisplay').textContent = `점수: ${taScore}`;
+                currentWordIndex++;
+                displayNextTimeAttackWord();
+                updateTATimeBar();
+            } else {
+                document.getElementById('taMessage').textContent = "정확하게 입력하세요!";
+                document.getElementById('taMessage').style.color = "#e74c3c";
+
+                // 추가 진동 (선택 사항)
                 if (navigator.vibrate) {
                     navigator.vibrate(200); // 200ms 진동
                 }
@@ -792,18 +946,23 @@
         }
 
         // 타임어택 타이머 시작
-        function startTimeAttackTimer() {
-            document.getElementById('timeAttackTimerDisplay').textContent = `남은 시간: ${timeAttackTimeLeft}초`;
-            clearInterval(timerTimeAttack);
-            timerTimeAttack = setInterval(() => {
-                timeAttackTimeLeft--;
-                document.getElementById('timeAttackTimerDisplay').textContent = `남은 시간: ${timeAttackTimeLeft}초`;
+        function startTATimer() {
+            document.getElementById('taTimerDisplay').textContent = `남은 시간: ${timeLeft}초`;
+            clearInterval(timer); // 기존 타이머 클리어
+            timer = setInterval(() => {
+                timeLeft--;
+                document.getElementById('taTimerDisplay').textContent = `남은 시간: ${timeLeft}초`;
 
-                if (timeAttackTimeLeft <= 0) {
-                    clearInterval(timerTimeAttack);
+                if (timeLeft <= 0) {
+                    clearInterval(timer);
                     endTimeAttackGame();
                 }
             }, 1000);
+        }
+
+        function endTimeAttackGame() {
+            alert(`타임어택 종료! 당신의 점수는 ${taScore}점입니다.`);
+            goHome();
         }
 
         function updateProgressBar() {
@@ -818,22 +977,20 @@
             progressBar.style.width = `${progress}%`;
         }
 
-        // 타임어택 진행률 업데이트
-        function updateTimeAttackProgressBar() {
-            const progressBar = document.getElementById('timeAttackProgressBar');
-            const progress = (timeAttackWordIndex / correctWords.length) * 100;
+        function updateTATimeBar() {
+            const progressBar = document.getElementById('taProgressBar');
+            const progress = (currentWordIndex / correctWords.length) * 100;
             progressBar.style.width = `${progress}%`;
         }
 
         function goHome() {
             document.getElementById('gameContainer1').style.display = 'none';
             document.getElementById('gameContainer2').style.display = 'none';
-            document.getElementById('gameContainerTimeAttack').style.display = 'none'; // 타임어택 컨테이너 숨기기
+            document.getElementById('timeAttackContainer').style.display = 'none';
             document.getElementById('pdfContainer').style.display = 'none'; // 교재 보기 화면 숨기기
             document.getElementById('cefrTestContainer').style.display = 'none'; // CEFR 테스트 화면 숨기기
             document.getElementById('mainMenu').style.display = 'block';
-            clearInterval(timer); // 기존 타이머 중지
-            clearInterval(timerTimeAttack); // 타임어택 타이머 중지
+            clearInterval(timer); // 타이머 중지
         }
 
         function viewPdf() {
@@ -915,27 +1072,27 @@
             }
         }
 
-        // 엔터키 입력 이벤트 처리
+        // 엔터키 입력 이벤트 처리 (게임 모드 1)
         function handleKeyPress(event) {
             if (event.key === "Enter" || event.keyCode === 13) {
                 checkAnswer(); // 엔터키를 누르면 정답을 체크
             }
         }
 
-        // 타임어택 엔터키 입력 이벤트 처리
-        function handleTimeAttackKeyPress(event) {
+        // 엔터키 입력 이벤트 처리 (타임어택 모드)
+        function handleTAKeyPress(event) {
             if (event.key === "Enter" || event.keyCode === 13) {
-                checkTimeAttackAnswer(); // 엔터키를 누르면 정답을 체크
+                checkTAAAnswer(); // 엔터키를 누르면 정답을 체크
             }
         }
 
-        // 단어 넘기기
+        // 단어 넘기기 (게임 모드 1 및 2)
         function skipWord() {
             const [englishWord, koreanWord] = correctWords[currentWordIndex];
             if (gameMode === 1) {
                 document.getElementById('message').textContent = `정답은 '${englishWord}' 입니다.`;
                 document.getElementById('message').style.color = "#e74c3c";
-            } else {
+            } else if (gameMode === 2) {
                 const messageElement = document.getElementById('message2');
                 messageElement.textContent = `정답은 '${koreanWord}' 입니다.`;
                 messageElement.style.color = "#e74c3c";
@@ -954,52 +1111,16 @@
             }
         }
 
-        // 타임어택 단어 넘기기
-        function skipTimeAttackWord() {
-            const [englishWord, koreanWord] = correctWords[timeAttackWordIndex];
-            document.getElementById('timeAttackMessage').textContent = `정답은 '${englishWord}' 입니다.`;
-            document.getElementById('timeAttackMessage').style.color = "#e74c3c";
-            timeAttackWordIndex++;
-            updateTimeAttackProgressBar();
-            displayNextTimeAttackWord();
-        }
-
-        // 타임어택 정답 체크
-        function checkTimeAttackAnswer() {
-            const [englishWord, koreanWord] = correctWords[timeAttackWordIndex];
-            const userAnswer = document.getElementById('timeAttackInput').value.trim().toLowerCase();
-
-            if (userAnswer === englishWord.toLowerCase()) {
-                document.getElementById('timeAttackMessage').textContent = "정답입니다!";
-                document.getElementById('timeAttackMessage').style.color = "#2ecc71";
-                document.getElementById('timeAttackInput').style.borderColor = "#2ecc71"; // 정답 시 테두리 색 변경
-                timeAttackScore += 10;
-                document.getElementById('timeAttackScoreDisplay').textContent = `점수: ${timeAttackScore}`;
-                document.getElementById('timeAttackCorrectSound').play();
-                timeAttackWordIndex++;
-                updateTimeAttackProgressBar();
+        // 단어 넘기기 (타임어택 모드)
+        function skipTAWord() {
+            const [englishWord, koreanWord] = correctWords[currentWordIndex];
+            document.getElementById('taMessage').textContent = `정답은 '${englishWord}' 입니다.`;
+            document.getElementById('taMessage').style.color = "#e74c3c";
+            currentWordIndex++;
+            setTimeout(() => {
                 displayNextTimeAttackWord();
-            } else {
-                document.getElementById('timeAttackMessage').textContent = `오답입니다. 정답은 '${englishWord}' 입니다.`;
-                document.getElementById('timeAttackMessage').style.color = "#e74c3c";
-                document.getElementById('timeAttackInput').style.borderColor = "#e74c3c"; // 오답 시 테두리 색 변경
-
-                // 진동 추가
-                if (navigator.vibrate) {
-                    navigator.vibrate(200); // 200ms 진동
-                }
-            }
-        }
-
-        // 타임어택 게임 종료
-        function endTimeAttackGame() {
-            document.getElementById('timeAttackWord').textContent = '타임어택 종료!';
-            document.getElementById('timeAttackInput').style.display = 'none';
-            document.getElementById('timeAttackSubmitButton').style.display = 'none';
-            document.getElementById('timeAttackSkipButton').style.display = 'none';
-            document.getElementById('timeAttackListenButton').style.display = 'none';
-            document.getElementById('timeAttackMessage').textContent = `최종 점수: ${timeAttackScore}`;
-            clearInterval(timerTimeAttack);
+                updateTATimeBar();
+            }, 2000);
         }
 
         // CEFR 레벨 테스트 시작
@@ -1061,7 +1182,7 @@
             document.getElementById('mainMenu').style.display = 'block';
             document.getElementById('gameContainer1').style.display = 'none';
             document.getElementById('gameContainer2').style.display = 'none';
-            document.getElementById('gameContainerTimeAttack').style.display = 'none'; // 타임어택 컨테이너 숨기기
+            document.getElementById('timeAttackContainer').style.display = 'none';
             document.getElementById('pdfContainer').style.display = 'none';
             document.getElementById('cefrTestContainer').style.display = 'none';
         };
