@@ -10,21 +10,241 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.17.0/xlsx.full.min.js"></script>
 
     <style>
-        /* 기존 스타일 유지 */
-        /* ... 기존 CSS 코드 ... */
+        /* Reset */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
 
-        /* 총 타이머 표시 스타일 추가 */
-        .total-timer {
-            font-size: 1rem;
-            margin-bottom: 10px;
-            color: #e67e22;
+        body {
+            font-family: 'Roboto', sans-serif;
+            background-color: #f7f9fc;
+            color: #2c3e50;
+            margin: 0;
+            padding: 0;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        h1 {
+            font-size: 2.2rem;
+            font-weight: bold;
+            color: #3498db;
+            margin-bottom: 20px;
             text-align: center;
         }
+
+        p {
+            font-size: 1.1rem;
+            margin-bottom: 15px;
+            line-height: 1.4;
+            text-align: center;
+        }
+
+        .container {
+            max-width: 400px;
+            width: 100%;
+            margin: 20px auto;
+            padding: 30px 20px;
+            background-color: #fff;
+            border-radius: 15px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        select, input {
+            padding: 15px;
+            font-size: 1rem;
+            margin-bottom: 20px;
+            border: 2px solid #3498db;
+            border-radius: 8px;
+            outline: none;
+            width: 100%;
+            transition: all 0.3s ease;
+        }
+
+        button {
+            padding: 15px;
+            font-size: 1.1rem;
+            width: 100%;
+            color: white;
+            background-color: black;
+            border: 3px solid black;
+            border-radius: 8px;
+            cursor: pointer;
+            margin-bottom: 15px;
+            transition: background-color 0.3s ease, transform 0.2s ease;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            font-weight: bold;
+        }
+
+        button:disabled {
+            background-color: #e0e0e0;
+            color: #bbb;
+            cursor: not-allowed;
+        }
+
+        button:hover {
+            transform: translateY(-2px);
+        }
+
+        #startButton {
+            font-weight: bold;
+        }
+
+        #startButton2 {
+            font-weight: bold;
+        }
+
+        #viewPdfButton {
+            font-weight: bold;
+        }
+
+        #listenButton {
+            background-color: #e74c3c;
+        }
+
+        footer {
+            padding: 20px;
+            text-align: center;
+            font-size: 0.9rem;
+            color: #7f8c8d;
+        }
+
+        footer a {
+            color: #3498db;
+            text-decoration: none;
+        }
+
+        footer a:hover {
+            text-decoration: underline;
+        }
+
+        .progress-bar {
+            width: 100%;
+            background-color: #e0e0e0;
+            border-radius: 25px;
+            height: 25px;
+            overflow: hidden;
+            margin-top: 20px;
+        }
+
+        .progress-bar-fill {
+            height: 100%;
+            width: 0;
+            background-color: #3498db;
+            border-radius: 25px;
+            /* 기존 transition */
+            /* transition: width 0.5s ease-out; */
+
+            /* 수정된 transition: 빠르게 시작해서 천천히 끝남 */
+            transition: width 0.6s cubic-bezier(0.9, 0.6, 0.2, 1);
+        }
+
+        .status-bar {
+            display: flex;
+            justify-content: space-between;
+            width: 100%;
+            margin-bottom: 15px;
+            font-size: 1rem;
+        }
+
+        .word-container {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        .option {
+            margin-bottom: 10px;
+            padding: 15px;
+            background-color: #fff;
+            border: 2px solid #3498db;
+            border-radius: 8px;
+            width: 100%;
+            cursor: pointer;
+            text-align: center;
+            transition: background-color 0.3s ease, color 0.3s ease;
+        }
+
+        .option:hover {
+            background-color: #ecf0f1;
+        }
+
+        .pdf-container {
+            width: 100%;
+            max-width: 600px; /* 크기 조정 */
+            margin: 20px auto;
+            text-align: center;
+        }
+
+        canvas {
+            width: 80%; /* 크기 조정 */
+            max-width: 500px; /* 최대 너비 설정 */
+            border: 1px solid black;
+            margin-bottom: 10px;
+        }
+
+        .nav-buttons {
+            display: flex;
+            justify-content: space-between;
+            width: 100%;
+            max-width: 800px;
+            margin: 10px auto;
+        }
+
+        .nav-buttons button {
+            padding: 10px 20px;
+            font-size: 1.1rem;
+        }
+
+        .nav-input {
+            margin-top: 20px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .nav-input input {
+            width: 100px;
+            padding: 15px;
+            font-size: 1.5rem;
+            text-align: center;
+            margin-right: 15px;
+        }
+
+        .nav-input button {
+            padding: 15px 25px;
+            font-size: 1.5rem;
+        }
+
+        /* 모바일 화면에서의 최적화 */
+        @media (max-width: 600px) {
+            canvas {
+                width: 100%; /* 작은 화면에서는 전체 너비 사용 */
+                max-width: none;
+            }
+            body {
+                padding: 10px;
+            }
+            h1 {
+                font-size: 1.8rem;
+            }
+            button {
+                padding: 12px;
+            }
+        }
+
     </style>
 </head>
 <body>
 
-    <!-- 메인 메뉴 -->
     <div class="container" id="mainMenu">
         <h1>Word Master: 영어 어휘 도전</h1>
         <p>빠르고 재미있는 퀴즈로 어휘력을 키우세요.</p>
@@ -38,16 +258,11 @@
             <option value="C1">C1 - 고급</option>
         </select>
 
-        <label for="timeLimit">문제당 시간 제한 (초): </label>
+        <label for="timeLimit">시간 제한 (초): </label>
         <input type="number" id="timeLimit" placeholder="30" min="10" max="60">
-
-        <!-- 총 시간 제한 입력 추가 // 변경된 부분 -->
-        <label for="totalTimeLimit">총 시간 제한 (분): </label>
-        <input type="number" id="totalTimeLimit" placeholder="10" min="1" max="60">
 
         <button id="startButton">게임 시작(한글보고 영어입력)</button>
         <button id="startButton2">게임 시작(영어보고 한글선택)</button>
-        <button id="startButton3">게임 시작(이미지 보고 문제 풀기)</button> <!-- 새로운 버튼 추가 -->
 
         <button id="viewPdfButton">교재 보기</button>
         <button id="startCEFRTest">CEFR 레벨 테스트 시작</button>
@@ -55,9 +270,6 @@
 
     <!-- 첫 번째 게임 모드 (한글보고 영어입력) -->
     <div class="container" id="gameContainer1" style="display:none;">
-        <!-- 총 타이머 표시 추가 // 변경된 부분 -->
-        <div class="total-timer" id="totalTimerDisplay">총 시간: 10:00</div>
-
         <div class="status-bar">
             <div id="scoreDisplay">점수: 0</div>
             <div id="timerDisplay">남은 시간: 30초</div>
@@ -92,9 +304,6 @@
 
     <!-- 두 번째 게임 모드 (영어보고 한글선택) -->
     <div class="container" id="gameContainer2" style="display:none;">
-        <!-- 총 타이머 표시 추가 // 변경된 부분 -->
-        <div class="total-timer" id="totalTimerDisplay2">총 시간: 10:00</div>
-
         <div class="status-bar">
             <div id="scoreDisplay2">점수: 0</div>
             <div id="timerDisplay2">남은 시간: 30초</div>
@@ -124,60 +333,6 @@
         <audio id="correctSound2">
             <source src="https://actions.google.com/sounds/v1/cartoon/wood_plank_flicks.ogg" type="audio/ogg">
             <source src="https://actions.google.com/sounds/v1/cartoon/wood_plank_flicks.mp3" type="audio/mpeg"> <!-- 추가된 mp3 소스 -->
-            Your browser does not support the audio element.
-        </audio>
-    </div>
-
-    <!-- 세 번째 게임 모드 (이미지 보고 문제 풀기) -->
-    <div class="container" id="gameContainer3" style="display:none;">
-        <!-- 총 타이머 표시 추가 // 변경된 부분 -->
-        <div class="total-timer" id="totalTimerDisplay3">총 시간: 10:00</div>
-
-        <div class="status-bar">
-            <div id="scoreDisplay3">점수: 0</div>
-            <div id="timerDisplay3">남은 시간: 30초</div>
-        </div>
-
-        <div class="word-container">
-            <div class="image-container" id="imageContainer">
-                <img id="questionImage" src="" alt="문제 이미지">
-            </div>
-            <div class="word-item" id="fillBlankQuestion" style="font-size: 1.5rem; margin-bottom: 20px;">
-                <!-- 질문 텍스트가 여기에 표시됩니다 -->
-            </div>
-        </div>
-
-        <input type="text" id="fillBlankInput" placeholder="정답을 입력하세요" onkeypress="handleFillBlankKeyPress(event)" autocomplete="off">
-
-        <div id="fillBlankOptionsContainer" style="margin-top: 10px;">
-            <!-- 옵션 버튼들이 동적으로 생성됩니다 -->
-        </div>
-
-        <p id="fillBlankMessage"></p>
-
-        <button id="fillBlankSubmitButton" onclick="submitFillBlankAnswer()">제출</button>
-        <button id="fillBlankSkipButton" onclick="skipFillBlankWord()">다음으로 넘기기</button>
-        <button id="fillBlankListenButton" onclick="playFillBlankWordAudio()">음성 듣기</button>
-
-        <div class="progress-bar">
-            <div class="progress-bar-fill" id="progressBar3"></div>
-        </div>
-
-        <div id="fillBlankQuestionCounter">0 / 0</div>
-
-        <button class="home-btn" onclick="goHome()">홈으로 돌아가기</button>
-
-        <!-- 정답 소리 추가 -->
-        <audio id="fillBlankCorrectSound">
-            <source src="https://actions.google.com/sounds/v1/cartoon/ascending_boing.ogg" type="audio/ogg">
-            <source src="https://actions.google.com/sounds/v1/cartoon/ascending_boing.mp3" type="audio/mpeg"> <!-- mp3 추가 -->
-            Your browser does not support the audio element.
-        </audio>
-
-        <!-- 오답 소리 추가 -->
-        <audio id="fillBlankIncorrectSound">
-            <source src="https://actions.google.com/sounds/v1/cartoon/wood_plank_flicks.ogg" type="audio/ogg">
-            <source src="https://actions.google.com/sounds/v1/cartoon/wood_plank_flicks.mp3" type="audio/mpeg"> <!-- mp3 추가 -->
             Your browser does not support the audio element.
         </audio>
     </div>
@@ -227,16 +382,14 @@
         let score = 0;
         let correctAnswerGiven = false;
         let timeLeft = 30;
-        let totalTimeLeft = 600; // 총 시간 (초)
         let timer;
-        let totalTimer;
         let currentEnglishWord = ""; 
         let pdfDoc = null,
             pageNum = 1,
             pageRendering = false,
             pageNumPending = null;
 
-        let gameMode = 1; // 1: 한글보고 영어입력, 2: 영어보고 한글선택, 3: 이미지 보고 문제 풀기
+        let gameMode = 1; // 1: 한글보고 영어입력, 2: 영어보고 한글선택
 
         // CEFR 테스트 관련 변수
         let cefrQuestions = [];
@@ -276,11 +429,6 @@
         // 추가된 변수들
         let correctCount1 = 0; // For game mode 1
         let correctCount2 = 0; // For game mode 2
-        let correctCount3 = 0; // For game mode 3
-
-        // 총 시간 타이머를 위한 변수 // 변경된 부분
-        let totalTimeInterval;
-        let isTimeUp = false;
 
         // 게임 시작 버튼에 대한 이벤트 리스너
         document.getElementById('startButton').addEventListener('click', function() {
@@ -291,12 +439,6 @@
         // 영어보고 한글선택 게임 시작 버튼
         document.getElementById('startButton2').addEventListener('click', function() {
             gameMode = 2;
-            startGame();
-        });
-
-        // 이미지 보고 문제 풀기 게임 시작 버튼
-        document.getElementById('startButton3').addEventListener('click', function() {
-            gameMode = 3;
             startGame();
         });
 
@@ -318,15 +460,9 @@
             const level = document.getElementById('levelSelect').value;
             const timeLimitInput = document.getElementById('timeLimit').value;
             timeLeft = timeLimitInput ? parseInt(timeLimitInput) : 30; // 사용자 정의 시간 제한 또는 기본 30초
-
-            // 총 시간 제한 설정 // 변경된 부분
-            const totalTimeLimitInput = document.getElementById('totalTimeLimit').value;
-            totalTimeLeft = totalTimeLimitInput ? parseInt(totalTimeLimitInput) * 60 : 600; // 분을 초로 변환, 기본 10분
-
-            if (gameMode === 3 || level) {
+            if (level) {
                 document.getElementById('mainMenu').style.display = 'none';
                 loadWords(level); // loadWords 호출 후 게임 설정
-                startTotalTimer(); // 총 타이머 시작
             } else {
                 alert("레벨을 선택해주세요!");
             }
@@ -335,23 +471,16 @@
         function loadWords(level) {
             let fileName;
 
-            if (gameMode === 3) {
-                // 게임 모드 3: 이미지 기반 퀴즈
-                // GitHub에 업로드한 IMAGEQUESTIONS.xlsx의 Raw URL을 사용하세요.
-                fileName = 'https://raw.githubusercontent.com/사용자이름/리포지토리이름/main/IMAGEQUESTIONS.xlsx'; // 실제 Raw URL로 변경
-            } else {
-                // 기존 게임 모드 1 및 2: 레벨 기반 단어 리스트
-                if (level === 'A1') {
-                    fileName = 'https://raw.githubusercontent.com/사용자이름/리포지토리이름/main/A1WORD.xlsx'; // 실제 Raw URL로 변경
-                } else if (level === 'A2') {
-                    fileName = 'https://raw.githubusercontent.com/사용자이름/리포지토리이름/main/A2WORD.xlsx'; // 실제 Raw URL로 변경
-                } else if (level === 'B1') {
-                    fileName = 'https://raw.githubusercontent.com/사용자이름/리포지토리이름/main/B1WORD.xlsx'; // 실제 Raw URL로 변경
-                } else if (level === 'B2') {
-                    fileName = 'https://raw.githubusercontent.com/사용자이름/리포지토리이름/main/B2WORD.xlsx'; // 실제 Raw URL로 변경
-                } else if (level === 'C1') {
-                    fileName = 'https://raw.githubusercontent.com/사용자이름/리포지토리이름/main/C1WORD.xlsx'; // 실제 Raw URL로 변경
-                }
+            if (level === 'A1') {
+                fileName = 'A1WORD.xlsx';
+            } else if (level === 'A2') {
+                fileName = 'A2WORD.xlsx';
+            } else if (level === 'B1') {
+                fileName = 'B1WORD.xlsx';
+            } else if (level === 'B2') {
+                fileName = 'B2WORD.xlsx';
+            } else if (level === 'C1') {
+                fileName = 'C1WORD.xlsx';
             }
 
             fetch(fileName)
@@ -366,8 +495,6 @@
                     const sheetName = workbook.SheetNames[0];
                     const sheet = workbook.Sheets[sheetName];
                     const jsonData = XLSX.utils.sheet_to_json(sheet, { header: 1 });
-
-                    // 첫 번째 행은 헤더이므로 제외
                     correctWords = shuffleArray(jsonData.slice(1));
                     currentWordIndex = 0;
                     score = 0;
@@ -381,7 +508,7 @@
                         document.getElementById('questionCounter').textContent = `0 / ${correctWords.length}`;
                         updateProgressBar();
                         displayNextWord();
-                    } else if (gameMode === 2) {
+                    } else {
                         // 게임 모드 2 설정
                         document.getElementById('gameContainer2').style.display = 'block';
                         correctCount2 = 0; // Reset correct count for mode 2
@@ -389,14 +516,6 @@
                         document.getElementById('questionCounter2').textContent = `0 / ${correctWords.length}`;
                         updateProgressBar2();
                         displayNextWord2();
-                    } else if (gameMode === 3) {
-                        // 게임 모드 3 설정
-                        document.getElementById('gameContainer3').style.display = 'block';
-                        correctCount3 = 0; // Reset correct count for mode 3
-                        document.getElementById('scoreDisplay3').textContent = `점수: ${score}`;
-                        document.getElementById('fillBlankQuestionCounter').textContent = `0 / ${correctWords.length}`;
-                        updateProgressBar3();
-                        displayNextWord3();
                     }
                 })
                 .catch(error => {
@@ -404,20 +523,17 @@
                     document.getElementById('mainMenu').style.display = 'block';
                     document.getElementById('gameContainer1').style.display = 'none';
                     document.getElementById('gameContainer2').style.display = 'none';
-                    document.getElementById('gameContainer3').style.display = 'none';
                 });
         }
 
-        // 음성 듣기 기능 (게임 모드 1)
+        // 음성 듣기 기능
         function playWordAudio() {
             const utterance = new SpeechSynthesisUtterance(currentEnglishWord);
             utterance.lang = 'en-US';
             speechSynthesis.speak(utterance);
         }
 
-        // 게임 모드 1: 다음 단어 표시
         function displayNextWord() {
-            if (isTimeUp) return; // 시간 초과 시 함수 종료
             if (currentWordIndex < correctWords.length) {
                 const [englishWord, koreanWord] = correctWords[currentWordIndex];
                 currentEnglishWord = englishWord;
@@ -430,13 +546,16 @@
                 startTimer(); // 새로운 문제 시작 시 타이머 다시 시작
                 document.getElementById('questionCounter').textContent = `${currentWordIndex + 1} / ${correctWords.length}`;
             } else {
-                endGame(); // 모든 단어를 맞췄을 때 게임 종료
+                document.getElementById('koreanWord').textContent = '축하합니다! 모든 단어를 맞추셨습니다!';
+                document.getElementById('englishInput').style.display = 'none';
+                document.getElementById('submitButton').style.display = 'none';
+                document.getElementById('skipButton').style.display = 'none';
+                document.getElementById('listenButton').style.display = 'none';
+                clearInterval(timer);
             }
         }
 
-        // 게임 모드 2: 다음 단어 표시
         function displayNextWord2() {
-            if (isTimeUp) return; // 시간 초과 시 함수 종료
             if (currentWordIndex < correctWords.length) {
                 const [englishWord, koreanWord] = correctWords[currentWordIndex];
                 document.getElementById('englishWord').textContent = englishWord;
@@ -451,9 +570,9 @@
                 }
                 shuffleArray(options);
 
-                document.getElementById('option1').textContent = `1. ${options[0]}`;
-                document.getElementById('option2').textContent = `2. ${options[1]}`;
-                document.getElementById('option3').textContent = `3. ${options[2]}`;
+                document.getElementById('option1').textContent = options[0];
+                document.getElementById('option2').textContent = options[1];
+                document.getElementById('option3').textContent = options[2];
 
                 // 선택지의 스타일 초기화
                 const optionElements = ['option1', 'option2', 'option3'];
@@ -474,57 +593,14 @@
                 startTimer2(); // 새로운 문제 시작 시 타이머 다시 시작
                 document.getElementById('questionCounter2').textContent = `${currentWordIndex + 1} / ${correctWords.length}`;
             } else {
-                endGame(); // 모든 단어를 맞췄을 때 게임 종료
+                document.getElementById('englishWord').textContent = '축하합니다! 모든 단어를 맞추셨습니다!';
+                document.getElementById('optionsContainer').style.display = 'none';
+                clearInterval(timer);
             }
         }
 
-        // 게임 모드 3: 다음 문제 표시 (이미지 기반)
-        function displayNextWord3() {
-            if (isTimeUp) return; // 시간 초과 시 함수 종료
-            if (currentWordIndex < correctWords.length) {
-                const [imageURL, question, correctOption, option1, option2, option3] = correctWords[currentWordIndex];
-                currentEnglishWord = correctOption; // 정답
-
-                // 이미지 설정
-                const imageElement = document.getElementById('questionImage');
-                imageElement.src = imageURL;
-                imageElement.alt = question;
-
-                // 질문 텍스트 설정
-                const questionElement = document.getElementById('fillBlankQuestion');
-                questionElement.textContent = question;
-
-                // 입력 필드 초기화
-                document.getElementById('fillBlankInput').value = '';
-                document.getElementById('fillBlankMessage').textContent = '';
-                document.getElementById('fillBlankInput').style.borderColor = "#3498db"; // 초기화
-                document.getElementById('fillBlankInput').focus();
-
-                // 옵션 설정
-                const optionsArray = [option1, option2, option3];
-                shuffleArray(optionsArray); // 옵션 섞기
-                document.getElementById('fillBlankOptionsContainer').innerHTML = ''; // 기존 옵션 제거
-
-                optionsArray.forEach((option, index) => {
-                    const button = document.createElement('button');
-                    button.classList.add('option');
-                    button.textContent = `${index + 1}. ${option}`;
-                    button.onclick = () => checkFillBlankAnswer(option);
-                    document.getElementById('fillBlankOptionsContainer').appendChild(button);
-                });
-
-                correctAnswerGiven = false;
-                startTimer3(); // 새로운 문제 시작 시 타이머 다시 시작
-                document.getElementById('fillBlankQuestionCounter').textContent = `${currentWordIndex + 1} / ${correctWords.length}`;
-            } else {
-                endGame(); // 모든 문제를 풀었을 때 게임 종료
-            }
-        }
-
-        // 게임 모드 1: 정답 확인
         function checkAnswer() {
-            if (isTimeUp) return; // 시간 초과 시 함수 종료
-            const [englishWord, koreanWord] = correctWords[currentWordIndex];
+            const [englishWord] = correctWords[currentWordIndex];
             const userAnswer = document.getElementById('englishInput').value.trim().toLowerCase();
 
             if (userAnswer === englishWord.toLowerCase()) {
@@ -554,11 +630,10 @@
                 document.getElementById('message').textContent = "정확하게 입력하셨습니다!";
                 document.getElementById('message').style.color = "#2ecc71";
                 document.getElementById('englishInput').style.borderColor = "#2ecc71"; // 다시 정답 맞춤
+                currentWordIndex++;
                 score += 5;
                 correctCount1++; // Increment correct count for mode 1
                 document.getElementById('scoreDisplay').textContent = `점수: ${score}`;
-                document.getElementById('correctSound').play();
-                currentWordIndex++;
                 setTimeout(() => {
                     displayNextWord();
                     updateProgressBar();
@@ -574,10 +649,8 @@
             }
         }
 
-        // 게임 모드 2: 정답 확인
         function checkAnswer2(optionId) {
-            if (isTimeUp) return; // 시간 초과 시 함수 종료
-            const selectedOption = document.getElementById(optionId).textContent.split('. ')[1]; // "1. are" => "are"
+            const selectedOption = document.getElementById(optionId).textContent;
             const [englishWord, koreanWord] = correctWords[currentWordIndex];
             const messageElement = document.getElementById('message2');
 
@@ -615,127 +688,6 @@
             }
         }
 
-        // 게임 모드 3: 정답 확인 (옵션 클릭)
-        function checkFillBlankAnswer(selectedOption) {
-            if (isTimeUp) return; // 시간 초과 시 함수 종료
-            const [imageURL, question, correctOption, option1, option2, option3] = correctWords[currentWordIndex];
-            const correctAnswer = correctOption.toLowerCase(); // 정답
-
-            const messageElement = document.getElementById('fillBlankMessage');
-
-            if (selectedOption.toLowerCase() === correctAnswer) {
-                // 정답 처리
-                messageElement.textContent = "정답입니다!";
-                messageElement.style.color = "#2ecc71";
-                score += 10;
-                correctCount3++;
-                document.getElementById('scoreDisplay3').textContent = `점수: ${score}`;
-                document.getElementById('fillBlankCorrectSound').play();
-
-                // 옵션 버튼 비활성화 및 스타일 변경
-                const optionButtons = document.querySelectorAll('#fillBlankOptionsContainer .option');
-                optionButtons.forEach(button => {
-                    button.disabled = true;
-                    if (button.textContent.split('. ')[1].toLowerCase() === correctAnswer) {
-                        button.style.backgroundColor = "#2ecc71";
-                        button.style.color = "#fff";
-                    }
-                });
-
-                currentWordIndex++;
-                setTimeout(() => {
-                    displayNextWord3();
-                    updateProgressBar3();
-                }, 1000);
-            } else {
-                // 오답 처리
-                messageElement.textContent = `오답입니다. 정답은 '${correctOption}' 입니다.`;
-                messageElement.style.color = "#e74c3c";
-                score -= 5; // 오답 시 점수 차감 (원하는 방식으로 조정 가능)
-                document.getElementById('fillBlankIncorrectSound').play();
-
-                // 진동 추가
-                if (navigator.vibrate) {
-                    navigator.vibrate(200); // 200ms 진동
-                }
-
-                // 오답 선택지의 스타일 변경
-                const optionButtons = document.querySelectorAll('#fillBlankOptionsContainer .option');
-                optionButtons.forEach(button => {
-                    if (button.textContent.split('. ')[1].toLowerCase() === selectedOption.toLowerCase()) {
-                        button.style.backgroundColor = "#e74c3c";
-                        button.style.color = "#fff";
-                        button.disabled = true;
-                    }
-                });
-            }
-        }
-
-        // 게임 모드 3: 정답 확인 (입력 제출)
-        function submitFillBlankAnswer() {
-            if (isTimeUp) return; // 시간 초과 시 함수 종료
-            const userAnswer = document.getElementById('fillBlankInput').value.trim().toLowerCase();
-            const [imageURL, question, correctOption, option1, option2, option3] = correctWords[currentWordIndex];
-            const correctAnswer = correctOption.toLowerCase(); // 정답
-
-            const messageElement = document.getElementById('fillBlankMessage');
-
-            if (userAnswer === correctAnswer) {
-                // 정답 처리
-                messageElement.textContent = "정답입니다!";
-                messageElement.style.color = "#2ecc71";
-                score += 10;
-                correctCount3++;
-                document.getElementById('scoreDisplay3').textContent = `점수: ${score}`;
-                document.getElementById('fillBlankCorrectSound').play();
-
-                currentWordIndex++;
-                setTimeout(() => {
-                    displayNextWord3();
-                    updateProgressBar3();
-                }, 1000);
-            } else {
-                // 오답 처리
-                messageElement.textContent = `오답입니다. 정답은 '${correctOption}' 입니다.`;
-                messageElement.style.color = "#e74c3c";
-                score -= 5; // 오답 시 점수 차감
-                document.getElementById('fillBlankIncorrectSound').play();
-
-                // 진동 추가
-                if (navigator.vibrate) {
-                    navigator.vibrate(200); // 200ms 진동
-                }
-            }
-        }
-
-        // 게임 모드 3: 문제 건너뛰기
-        function skipFillBlankWord() {
-            if (isTimeUp) return; // 시간 초과 시 함수 종료
-            const [imageURL, question, correctOption, option1, option2, option3] = correctWords[currentWordIndex];
-            document.getElementById('fillBlankMessage').textContent = `정답은 '${correctOption}' 입니다.`;
-            document.getElementById('fillBlankMessage').style.color = "#e74c3c";
-            currentWordIndex++;
-            setTimeout(() => {
-                displayNextWord3();
-                updateProgressBar3();
-            }, 2000);
-        }
-
-        // 게임 모드 3: 음성 듣기
-        function playFillBlankWordAudio() {
-            const utterance = new SpeechSynthesisUtterance(currentEnglishWord);
-            utterance.lang = 'en-US';
-            speechSynthesis.speak(utterance);
-        }
-
-        // 게임 모드 3: 엔터키 입력 이벤트 처리
-        function handleFillBlankKeyPress(event) {
-            if (event.key === "Enter" || event.keyCode === 13) {
-                submitFillBlankAnswer(); // 엔터키를 누르면 정답을 체크
-            }
-        }
-
-        // 게임 모드 1 및 2: 타이머 시작
         function startTimer() {
             // 각 문제 시작 시, timeLeft를 초기화
             const timeLimitInput = document.getElementById('timeLimit').value;
@@ -747,8 +699,8 @@
                 timeLeft--;
                 document.getElementById('timerDisplay').textContent = `남은 시간: ${timeLeft}초`;
 
-                if (timeLeft <= 10 && !correctAnswerGiven && gameMode === 1) {
-                    // 시간 10초 남았을 때 힌트 제공 (게임 모드 1에만 해당)
+                if (timeLeft <= 10 && !correctAnswerGiven) {
+                    // 시간 10초 남았을 때 힌트 제공
                     document.getElementById('message').textContent = `힌트: 단어의 첫 글자는 '${currentEnglishWord[0].toUpperCase()}' 입니다.`;
                     document.getElementById('message').style.color = "#f1c40f"; // 힌트 색상
                 }
@@ -778,115 +730,32 @@
             }, 1000);
         }
 
-        // 게임 모드 3: 타이머 시작
-        function startTimer3() {
-            // 각 문제 시작 시, timeLeft를 초기화
-            const timeLimitInput = document.getElementById('timeLimit').value;
-            timeLeft = timeLimitInput ? parseInt(timeLimitInput) : 30; // 시간 초기화
-            
-            document.getElementById('timerDisplay3').textContent = `남은 시간: ${timeLeft}초`;
-            clearInterval(timer); // 기존 타이머 클리어
-            timer = setInterval(() => {
-                timeLeft--;
-                document.getElementById('timerDisplay3').textContent = `남은 시간: ${timeLeft}초`;
-
-                if (timeLeft <= 0) {
-                    clearInterval(timer); // 타이머 중지
-                    skipFillBlankWord(); // 시간이 끝나면 다음 문제로 넘어감
-                }
-            }, 1000);
-        }
-
-        // 총 타이머 시작 함수 // 변경된 부분
-        function startTotalTimer() {
-            updateTotalTimerDisplay();
-            totalTimer = setInterval(() => {
-                totalTimeLeft--;
-                updateTotalTimerDisplay();
-
-                if (totalTimeLeft <= 0) {
-                    clearInterval(totalTimer);
-                    clearInterval(timer);
-                    isTimeUp = true;
-                    endGame();
-                }
-            }, 1000);
-        }
-
-        // 총 타이머 표시 업데이트 함수 // 변경된 부분
-        function updateTotalTimerDisplay() {
-            let minutes = Math.floor(totalTimeLeft / 60);
-            let seconds = totalTimeLeft % 60;
-            minutes = minutes < 10 ? `0${minutes}` : minutes;
-            seconds = seconds < 10 ? `0${seconds}` : seconds;
-
-            if (gameMode === 1) {
-                document.getElementById('totalTimerDisplay').textContent = `총 시간: ${minutes}:${seconds}`;
-            } else if (gameMode === 2) {
-                document.getElementById('totalTimerDisplay2').textContent = `총 시간: ${minutes}:${seconds}`;
-            } else if (gameMode === 3) {
-                document.getElementById('totalTimerDisplay3').textContent = `총 시간: ${minutes}:${seconds}`;
-            }
-        }
-
-        // 게임 종료 함수 // 변경된 부분
-        function endGame() {
-            clearInterval(timer);
-            // 모든 게임 모드 컨테이너 숨기기
-            document.getElementById('gameContainer1').style.display = 'none';
-            document.getElementById('gameContainer2').style.display = 'none';
-            document.getElementById('gameContainer3').style.display = 'none';
-            document.getElementById('pdfContainer').style.display = 'none';
-            document.getElementById('cefrTestContainer').style.display = 'none';
-
-            // 결과 표시
-            let totalQuestionsAnswered = currentWordIndex;
-            alert(`시간이 종료되었습니다!\n푸신 문제 수: ${totalQuestionsAnswered}\n최종 점수: ${score}`);
-            
-            // 홈으로 돌아가기
-            goHome();
-        }
-
-        // 게임 모드 1: 진행률 업데이트
         function updateProgressBar() {
             const progressBar = document.getElementById('progressBar');
             const progress = (correctCount1 / correctWords.length) * 100;
             progressBar.style.width = `${progress}%`;
         }
 
-        // 게임 모드 2: 진행률 업데이트
         function updateProgressBar2() {
             const progressBar = document.getElementById('progressBar2');
             const progress = (correctCount2 / correctWords.length) * 100;
             progressBar.style.width = `${progress}%`;
         }
 
-        // 게임 모드 3: 진행률 업데이트
-        function updateProgressBar3() {
-            const progressBar = document.getElementById('progressBar3');
-            const progress = (correctCount3 / correctWords.length) * 100;
-            progressBar.style.width = `${progress}%`;
-        }
-
-        // 홈으로 돌아가기
         function goHome() {
             document.getElementById('gameContainer1').style.display = 'none';
             document.getElementById('gameContainer2').style.display = 'none';
-            document.getElementById('gameContainer3').style.display = 'none';
             document.getElementById('pdfContainer').style.display = 'none'; // 교재 보기 화면 숨기기
             document.getElementById('cefrTestContainer').style.display = 'none'; // CEFR 테스트 화면 숨기기
             document.getElementById('mainMenu').style.display = 'block';
             clearInterval(timer); // 타이머 중지
-            clearInterval(totalTimer); // 총 타이머 중지 // 변경된 부분
-            isTimeUp = false; // 시간 초과 플래그 초기화
         }
 
-        // PDF 보기 기능
         function viewPdf() {
             document.getElementById('mainMenu').style.display = 'none';
             document.getElementById('pdfContainer').style.display = 'block';
 
-            const url = 'https://raw.githubusercontent.com/사용자이름/리포지토리이름/main/abcbook.pdf'; // 실제 PDF 파일 URL로 변경
+            const url = 'abcbook.pdf'; // PDF 파일 경로
 
             // PDF 파일 로드
             pdfjsLib.getDocument(url).promise.then(function(pdfDoc_) {
@@ -961,28 +830,23 @@
             }
         }
 
-        // 게임 모드 1: 엔터키 입력 이벤트 처리
+        // 엔터키 입력 이벤트 처리
         function handleKeyPress(event) {
             if (event.key === "Enter" || event.keyCode === 13) {
                 checkAnswer(); // 엔터키를 누르면 정답을 체크
             }
         }
 
-        // 게임 모드 3: 단어 건너뛰기
+        // 단어 넘기기
         function skipWord() {
+            const [englishWord, koreanWord] = correctWords[currentWordIndex];
             if (gameMode === 1) {
-                const [englishWord, koreanWord] = correctWords[currentWordIndex];
                 document.getElementById('message').textContent = `정답은 '${englishWord}' 입니다.`;
                 document.getElementById('message').style.color = "#e74c3c";
-            } else if (gameMode === 2) {
-                const [englishWord, koreanWord] = correctWords[currentWordIndex];
+            } else {
                 const messageElement = document.getElementById('message2');
                 messageElement.textContent = `정답은 '${koreanWord}' 입니다.`;
                 messageElement.style.color = "#e74c3c";
-            } else if (gameMode === 3) {
-                const [imageURL, question, correctOption, option1, option2, option3] = correctWords[currentWordIndex];
-                document.getElementById('fillBlankMessage').textContent = `정답은 '${correctOption}' 입니다.`;
-                document.getElementById('fillBlankMessage').style.color = "#e74c3c";
             }
             currentWordIndex++;
             if (gameMode === 1) {
@@ -990,15 +854,10 @@
                     displayNextWord();
                     updateProgressBar();
                 }, 2000);
-            } else if (gameMode === 2) {
+            } else {
                 setTimeout(() => {
                     displayNextWord2();
                     updateProgressBar2();
-                }, 2000);
-            } else if (gameMode === 3) {
-                setTimeout(() => {
-                    displayNextWord3();
-                    updateProgressBar3();
                 }, 2000);
             }
         }
@@ -1062,7 +921,6 @@
             document.getElementById('mainMenu').style.display = 'block';
             document.getElementById('gameContainer1').style.display = 'none';
             document.getElementById('gameContainer2').style.display = 'none';
-            document.getElementById('gameContainer3').style.display = 'none';
             document.getElementById('pdfContainer').style.display = 'none';
             document.getElementById('cefrTestContainer').style.display = 'none';
         };
