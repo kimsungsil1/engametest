@@ -297,6 +297,7 @@
         <!-- 정답 소리 추가 -->
         <audio id="correctSound">
             <source src="https://actions.google.com/sounds/v1/cartoon/ascending_boing.ogg" type="audio/ogg">
+            <source src="https://actions.google.com/sounds/v1/cartoon/ascending_boing.mp3" type="audio/mpeg"> <!-- 추가된 mp3 소스 -->
             Your browser does not support the audio element.
         </audio>
     </div>
@@ -331,6 +332,7 @@
         <!-- 정답 소리 추가 -->
         <audio id="correctSound2">
             <source src="https://actions.google.com/sounds/v1/cartoon/wood_plank_flicks.ogg" type="audio/ogg">
+            <source src="https://actions.google.com/sounds/v1/cartoon/wood_plank_flicks.mp3" type="audio/mpeg"> <!-- 추가된 mp3 소스 -->
             Your browser does not support the audio element.
         </audio>
     </div>
@@ -619,6 +621,11 @@
                 document.getElementById('message').style.color = "#e74c3c";
                 document.getElementById('englishInput').style.borderColor = "#e74c3c"; // 오답 시 테두리 색 변경
                 correctAnswerGiven = true;
+
+                // 진동 추가
+                if (navigator.vibrate) {
+                    navigator.vibrate(200); // 200ms 진동
+                }
             } else if (correctAnswerGiven && userAnswer === englishWord.toLowerCase()) {
                 document.getElementById('message').textContent = "정확하게 입력하셨습니다!";
                 document.getElementById('message').style.color = "#2ecc71";
@@ -634,6 +641,11 @@
             } else {
                 document.getElementById('message').textContent = "정확하게 입력하세요!";
                 document.getElementById('message').style.color = "#e74c3c";
+
+                // 추가 진동 (선택 사항)
+                if (navigator.vibrate) {
+                    navigator.vibrate(200); // 200ms 진동
+                }
             }
         }
 
@@ -668,6 +680,11 @@
                 document.getElementById(optionId).style.backgroundColor = "#e74c3c";
                 document.getElementById(optionId).style.color = "#fff";
                 document.getElementById(optionId).style.pointerEvents = "none"; // 추가 클릭 방지
+
+                // 진동 추가
+                if (navigator.vibrate) {
+                    navigator.vibrate(200); // 200ms 진동
+                }
             }
         }
 
