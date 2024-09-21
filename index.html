@@ -46,7 +46,7 @@
         }
 
         .container {
-            max-width: 400px;
+            max-width: 500px;
             width: 100%;
             margin: 20px auto;
             padding: 30px 20px;
@@ -94,19 +94,11 @@
             transform: translateY(-2px);
         }
 
-        #startButton {
+        #startButton, #startButton2, #startButton3, #viewPdfButton, #startCEFRTest {
             font-weight: bold;
         }
 
-        #startButton2 {
-            font-weight: bold;
-        }
-
-        #viewPdfButton {
-            font-weight: bold;
-        }
-
-        #listenButton {
+        #listenButton, #fillBlankListenButton {
             background-color: #e74c3c;
         }
 
@@ -224,6 +216,18 @@
             font-size: 1.5rem;
         }
 
+        /* 이미지 기반 퀴즈를 위한 스타일 추가 */
+        .image-container {
+            margin-bottom: 20px;
+        }
+
+        .image-container img {
+            max-width: 100%;
+            height: auto;
+            border: 2px solid #3498db;
+            border-radius: 8px;
+        }
+
         /* 모바일 화면에서의 최적화 */
         @media (max-width: 600px) {
             canvas {
@@ -245,6 +249,7 @@
 </head>
 <body>
 
+    <!-- 메인 메뉴 -->
     <div class="container" id="mainMenu">
         <h1>Word Master: 영어 어휘 도전</h1>
         <p>빠르고 재미있는 퀴즈로 어휘력을 키우세요.</p>
@@ -263,6 +268,7 @@
 
         <button id="startButton">게임 시작(한글보고 영어입력)</button>
         <button id="startButton2">게임 시작(영어보고 한글선택)</button>
+        <button id="startButton3">게임 시작(이미지 보고 문제 풀기)</button> <!-- 새로운 버튼 추가 -->
 
         <button id="viewPdfButton">교재 보기</button>
         <button id="startCEFRTest">CEFR 레벨 테스트 시작</button>
@@ -337,6 +343,57 @@
         </audio>
     </div>
 
+    <!-- 세 번째 게임 모드 (이미지 보고 문제 풀기) -->
+    <div class="container" id="gameContainer3" style="display:none;">
+        <div class="status-bar">
+            <div id="scoreDisplay3">점수: 0</div>
+            <div id="timerDisplay3">남은 시간: 30초</div>
+        </div>
+
+        <div class="word-container">
+            <div class="image-container" id="imageContainer">
+                <img id="questionImage" src="" alt="문제 이미지">
+            </div>
+            <div class="word-item" id="fillBlankQuestion" style="font-size: 1.5rem; margin-bottom: 20px;">
+                <!-- 질문 텍스트가 여기에 표시됩니다 -->
+            </div>
+        </div>
+
+        <input type="text" id="fillBlankInput" placeholder="정답을 입력하세요" onkeypress="handleFillBlankKeyPress(event)" autocomplete="off">
+
+        <div id="fillBlankOptionsContainer" style="margin-top: 10px;">
+            <!-- 옵션 버튼들이 동적으로 생성됩니다 -->
+        </div>
+
+        <p id="fillBlankMessage"></p>
+
+        <button id="fillBlankSubmitButton" onclick="submitFillBlankAnswer()">제출</button>
+        <button id="fillBlankSkipButton" onclick="skipFillBlankWord()">다음으로 넘기기</button>
+        <button id="fillBlankListenButton" onclick="playFillBlankWordAudio()">음성 듣기</button>
+
+        <div class="progress-bar">
+            <div class="progress-bar-fill" id="progressBar3"></div>
+        </div>
+
+        <div id="fillBlankQuestionCounter">0 / 0</div>
+
+        <button class="home-btn" onclick="goHome()">홈으로 돌아가기</button>
+
+        <!-- 정답 소리 추가 -->
+        <audio id="fillBlankCorrectSound">
+            <source src="https://actions.google.com/sounds/v1/cartoon/ascending_boing.ogg" type="audio/ogg">
+            <source src="https://actions.google.com/sounds/v1/cartoon/ascending_boing.mp3" type="audio/mpeg"> <!-- mp3 추가 -->
+            Your browser does not support the audio element.
+        </audio>
+
+        <!-- 오답 소리 추가 -->
+        <audio id="fillBlankIncorrectSound">
+            <source src="https://actions.google.com/sounds/v1/cartoon/wood_plank_flicks.ogg" type="audio/ogg">
+            <source src="https://actions.google.com/sounds/v1/cartoon/wood_plank_flicks.mp3" type="audio/mpeg"> <!-- mp3 추가 -->
+            Your browser does not support the audio element.
+        </audio>
+    </div>
+
     <!-- 교재 보기 -->
     <div class="pdf-container" id="pdfContainer" style="display: none;">
         <h1>교재 보기</h1>
@@ -389,7 +446,7 @@
             pageRendering = false,
             pageNumPending = null;
 
-        let gameMode = 1; // 1: 한글보고 영어입력, 2: 영어보고 한글선택
+        let gameMode = 1; // 1: 한글보고 영어입력, 2: 영어보고 한글선택, 3: 이미지 보고 문제 풀기
 
         // CEFR 테스트 관련 변수
         let cefrQuestions = [];
@@ -429,6 +486,7 @@
         // 추가된 변수들
         let correctCount1 = 0; // For game mode 1
         let correctCount2 = 0; // For game mode 2
+        let correctCount3 = 0; // For game mode 3
 
         // 게임 시작 버튼에 대한 이벤트 리스너
         document.getElementById('startButton').addEventListener('click', function() {
@@ -439,6 +497,12 @@
         // 영어보고 한글선택 게임 시작 버튼
         document.getElementById('startButton2').addEventListener('click', function() {
             gameMode = 2;
+            startGame();
+        });
+
+        // 이미지 보고 문제 풀기 게임 시작 버튼
+        document.getElementById('startButton3').addEventListener('click', function() {
+            gameMode = 3;
             startGame();
         });
 
@@ -471,16 +535,22 @@
         function loadWords(level) {
             let fileName;
 
-            if (level === 'A1') {
-                fileName = 'A1WORD.xlsx';
-            } else if (level === 'A2') {
-                fileName = 'A2WORD.xlsx';
-            } else if (level === 'B1') {
-                fileName = 'B1WORD.xlsx';
-            } else if (level === 'B2') {
-                fileName = 'B2WORD.xlsx';
-            } else if (level === 'C1') {
-                fileName = 'C1WORD.xlsx';
+            if (gameMode === 3) {
+                // 게임 모드 3: 이미지 기반 퀴즈
+                fileName = 'IMAGEQUESTIONS.xlsx';
+            } else {
+                // 기존 게임 모드 1 및 2: 레벨 기반 단어 리스트
+                if (level === 'A1') {
+                    fileName = 'A1WORD.xlsx';
+                } else if (level === 'A2') {
+                    fileName = 'A2WORD.xlsx';
+                } else if (level === 'B1') {
+                    fileName = 'B1WORD.xlsx';
+                } else if (level === 'B2') {
+                    fileName = 'B2WORD.xlsx';
+                } else if (level === 'C1') {
+                    fileName = 'C1WORD.xlsx';
+                }
             }
 
             fetch(fileName)
@@ -495,6 +565,8 @@
                     const sheetName = workbook.SheetNames[0];
                     const sheet = workbook.Sheets[sheetName];
                     const jsonData = XLSX.utils.sheet_to_json(sheet, { header: 1 });
+
+                    // 첫 번째 행은 헤더이므로 제외
                     correctWords = shuffleArray(jsonData.slice(1));
                     currentWordIndex = 0;
                     score = 0;
@@ -508,7 +580,7 @@
                         document.getElementById('questionCounter').textContent = `0 / ${correctWords.length}`;
                         updateProgressBar();
                         displayNextWord();
-                    } else {
+                    } else if (gameMode === 2) {
                         // 게임 모드 2 설정
                         document.getElementById('gameContainer2').style.display = 'block';
                         correctCount2 = 0; // Reset correct count for mode 2
@@ -516,6 +588,14 @@
                         document.getElementById('questionCounter2').textContent = `0 / ${correctWords.length}`;
                         updateProgressBar2();
                         displayNextWord2();
+                    } else if (gameMode === 3) {
+                        // 게임 모드 3 설정
+                        document.getElementById('gameContainer3').style.display = 'block';
+                        correctCount3 = 0; // Reset correct count for mode 3
+                        document.getElementById('scoreDisplay3').textContent = `점수: ${score}`;
+                        document.getElementById('fillBlankQuestionCounter').textContent = `0 / ${correctWords.length}`;
+                        updateProgressBar3();
+                        displayNextWord3();
                     }
                 })
                 .catch(error => {
@@ -523,16 +603,18 @@
                     document.getElementById('mainMenu').style.display = 'block';
                     document.getElementById('gameContainer1').style.display = 'none';
                     document.getElementById('gameContainer2').style.display = 'none';
+                    document.getElementById('gameContainer3').style.display = 'none';
                 });
         }
 
-        // 음성 듣기 기능
+        // 음성 듣기 기능 (게임 모드 1)
         function playWordAudio() {
             const utterance = new SpeechSynthesisUtterance(currentEnglishWord);
             utterance.lang = 'en-US';
             speechSynthesis.speak(utterance);
         }
 
+        // 게임 모드 1: 다음 단어 표시
         function displayNextWord() {
             if (currentWordIndex < correctWords.length) {
                 const [englishWord, koreanWord] = correctWords[currentWordIndex];
@@ -555,6 +637,7 @@
             }
         }
 
+        // 게임 모드 2: 다음 단어 표시
         function displayNextWord2() {
             if (currentWordIndex < correctWords.length) {
                 const [englishWord, koreanWord] = correctWords[currentWordIndex];
@@ -599,8 +682,52 @@
             }
         }
 
+        // 게임 모드 3: 다음 문제 표시 (이미지 기반)
+        function displayNextWord3() {
+            if (currentWordIndex < correctWords.length) {
+                const [imageURL, question, correctOption, option1, option2, option3] = correctWords[currentWordIndex];
+                currentEnglishWord = correctOption; // 정답
+
+                // 이미지 설정
+                const imageElement = document.getElementById('questionImage');
+                imageElement.src = imageURL;
+                imageElement.alt = question;
+
+                // 질문 텍스트 설정
+                const questionElement = document.getElementById('fillBlankQuestion');
+                questionElement.textContent = question;
+
+                // 입력 필드 초기화
+                document.getElementById('fillBlankInput').value = '';
+                document.getElementById('fillBlankMessage').textContent = '';
+                document.getElementById('fillBlankInput').style.borderColor = "#3498db"; // 초기화
+                document.getElementById('fillBlankInput').focus();
+
+                // 옵션 설정
+                const optionsArray = [option1, option2, option3];
+                shuffleArray(optionsArray); // 옵션 섞기
+                document.getElementById('fillBlankOptionsContainer').innerHTML = ''; // 기존 옵션 제거
+
+                optionsArray.forEach((option, index) => {
+                    const button = document.createElement('button');
+                    button.classList.add('option');
+                    button.textContent = `${index + 1}. ${option}`;
+                    button.onclick = () => checkFillBlankAnswer(option);
+                    document.getElementById('fillBlankOptionsContainer').appendChild(button);
+                });
+
+                correctAnswerGiven = false;
+                startTimer3(); // 새로운 문제 시작 시 타이머 다시 시작
+                document.getElementById('fillBlankQuestionCounter').textContent = `${currentWordIndex + 1} / ${correctWords.length}`;
+            } else {
+                alert(`축하합니다! 모든 문제를 풀었습니다! 최종 점수: ${score}`);
+                goHome();
+            }
+        }
+
+        // 게임 모드 1: 정답 확인
         function checkAnswer() {
-            const [englishWord] = correctWords[currentWordIndex];
+            const [englishWord, koreanWord] = correctWords[currentWordIndex];
             const userAnswer = document.getElementById('englishInput').value.trim().toLowerCase();
 
             if (userAnswer === englishWord.toLowerCase()) {
@@ -630,7 +757,6 @@
                 document.getElementById('message').textContent = "정확하게 입력하셨습니다!";
                 document.getElementById('message').style.color = "#2ecc71";
                 document.getElementById('englishInput').style.borderColor = "#2ecc71"; // 다시 정답 맞춤
-                currentWordIndex++;
                 score += 5;
                 correctCount1++; // Increment correct count for mode 1
                 document.getElementById('scoreDisplay').textContent = `점수: ${score}`;
@@ -649,8 +775,9 @@
             }
         }
 
+        // 게임 모드 2: 정답 확인
         function checkAnswer2(optionId) {
-            const selectedOption = document.getElementById(optionId).textContent;
+            const selectedOption = document.getElementById(optionId).textContent.split('. ')[1]; // "1. are" => "are"
             const [englishWord, koreanWord] = correctWords[currentWordIndex];
             const messageElement = document.getElementById('message2');
 
@@ -688,6 +815,124 @@
             }
         }
 
+        // 게임 모드 3: 정답 확인 (옵션 클릭)
+        function checkFillBlankAnswer(selectedOption) {
+            const [imageURL, question, correctOption, option1, option2, option3] = correctWords[currentWordIndex];
+            const correctAnswer = correctOption.toLowerCase(); // 정답
+
+            const messageElement = document.getElementById('fillBlankMessage');
+
+            if (selectedOption.toLowerCase() === correctAnswer) {
+                // 정답 처리
+                messageElement.textContent = "정답입니다!";
+                messageElement.style.color = "#2ecc71";
+                score += 10;
+                correctCount3++;
+                document.getElementById('scoreDisplay3').textContent = `점수: ${score}`;
+                document.getElementById('fillBlankCorrectSound').play();
+
+                // 옵션 버튼 비활성화 및 스타일 변경
+                const optionButtons = document.querySelectorAll('#fillBlankOptionsContainer .option');
+                optionButtons.forEach(button => {
+                    button.disabled = true;
+                    if (button.textContent.split('. ')[1].toLowerCase() === correctAnswer) {
+                        button.style.backgroundColor = "#2ecc71";
+                        button.style.color = "#fff";
+                    }
+                });
+
+                currentWordIndex++;
+                setTimeout(() => {
+                    displayNextWord3();
+                    updateProgressBar3();
+                }, 1000);
+            } else {
+                // 오답 처리
+                messageElement.textContent = `오답입니다. 정답은 '${correctOption}' 입니다.`;
+                messageElement.style.color = "#e74c3c";
+                score -= 5; // 오답 시 점수 차감 (원하는 방식으로 조정 가능)
+                document.getElementById('fillBlankIncorrectSound').play();
+
+                // 진동 추가
+                if (navigator.vibrate) {
+                    navigator.vibrate(200); // 200ms 진동
+                }
+
+                // 오답 선택지의 스타일 변경
+                const optionButtons = document.querySelectorAll('#fillBlankOptionsContainer .option');
+                optionButtons.forEach(button => {
+                    if (button.textContent.split('. ')[1].toLowerCase() === selectedOption.toLowerCase()) {
+                        button.style.backgroundColor = "#e74c3c";
+                        button.style.color = "#fff";
+                        button.disabled = true;
+                    }
+                });
+            }
+        }
+
+        // 게임 모드 3: 정답 확인 (입력 제출)
+        function submitFillBlankAnswer() {
+            const userAnswer = document.getElementById('fillBlankInput').value.trim().toLowerCase();
+            const [imageURL, question, correctOption, option1, option2, option3] = correctWords[currentWordIndex];
+            const correctAnswer = correctOption.toLowerCase(); // 정답
+
+            const messageElement = document.getElementById('fillBlankMessage');
+
+            if (userAnswer === correctAnswer) {
+                // 정답 처리
+                messageElement.textContent = "정답입니다!";
+                messageElement.style.color = "#2ecc71";
+                score += 10;
+                correctCount3++;
+                document.getElementById('scoreDisplay3').textContent = `점수: ${score}`;
+                document.getElementById('fillBlankCorrectSound').play();
+
+                currentWordIndex++;
+                setTimeout(() => {
+                    displayNextWord3();
+                    updateProgressBar3();
+                }, 1000);
+            } else {
+                // 오답 처리
+                messageElement.textContent = `오답입니다. 정답은 '${correctOption}' 입니다.`;
+                messageElement.style.color = "#e74c3c";
+                score -= 5; // 오답 시 점수 차감
+                document.getElementById('fillBlankIncorrectSound').play();
+
+                // 진동 추가
+                if (navigator.vibrate) {
+                    navigator.vibrate(200); // 200ms 진동
+                }
+            }
+        }
+
+        // 게임 모드 3: 문제 건너뛰기
+        function skipFillBlankWord() {
+            const [imageURL, question, correctOption, option1, option2, option3] = correctWords[currentWordIndex];
+            document.getElementById('fillBlankMessage').textContent = `정답은 '${correctOption}' 입니다.`;
+            document.getElementById('fillBlankMessage').style.color = "#e74c3c";
+            currentWordIndex++;
+            setTimeout(() => {
+                displayNextWord3();
+                updateProgressBar3();
+            }, 2000);
+        }
+
+        // 게임 모드 3: 음성 듣기
+        function playFillBlankWordAudio() {
+            const utterance = new SpeechSynthesisUtterance(currentEnglishWord);
+            utterance.lang = 'en-US';
+            speechSynthesis.speak(utterance);
+        }
+
+        // 게임 모드 3: 엔터키 입력 이벤트 처리
+        function handleFillBlankKeyPress(event) {
+            if (event.key === "Enter" || event.keyCode === 13) {
+                submitFillBlankAnswer(); // 엔터키를 누르면 정답을 체크
+            }
+        }
+
+        // 게임 모드 1 및 2: 타이머 시작
         function startTimer() {
             // 각 문제 시작 시, timeLeft를 초기화
             const timeLimitInput = document.getElementById('timeLimit').value;
@@ -730,27 +975,58 @@
             }, 1000);
         }
 
+        // 게임 모드 3: 타이머 시작
+        function startTimer3() {
+            // 각 문제 시작 시, timeLeft를 초기화
+            const timeLimitInput = document.getElementById('timeLimit').value;
+            timeLeft = timeLimitInput ? parseInt(timeLimitInput) : 30; // 시간 초기화
+            
+            document.getElementById('timerDisplay3').textContent = `남은 시간: ${timeLeft}초`;
+            clearInterval(timer); // 기존 타이머 클리어
+            timer = setInterval(() => {
+                timeLeft--;
+                document.getElementById('timerDisplay3').textContent = `남은 시간: ${timeLeft}초`;
+
+                if (timeLeft <= 0) {
+                    clearInterval(timer); // 타이머 중지
+                    skipFillBlankWord(); // 시간이 끝나면 다음 문제로 넘어감
+                }
+            }, 1000);
+        }
+
+        // 게임 모드 1: 진행률 업데이트
         function updateProgressBar() {
             const progressBar = document.getElementById('progressBar');
             const progress = (correctCount1 / correctWords.length) * 100;
             progressBar.style.width = `${progress}%`;
         }
 
+        // 게임 모드 2: 진행률 업데이트
         function updateProgressBar2() {
             const progressBar = document.getElementById('progressBar2');
             const progress = (correctCount2 / correctWords.length) * 100;
             progressBar.style.width = `${progress}%`;
         }
 
+        // 게임 모드 3: 진행률 업데이트
+        function updateProgressBar3() {
+            const progressBar = document.getElementById('progressBar3');
+            const progress = (correctCount3 / correctWords.length) * 100;
+            progressBar.style.width = `${progress}%`;
+        }
+
+        // 홈으로 돌아가기
         function goHome() {
             document.getElementById('gameContainer1').style.display = 'none';
             document.getElementById('gameContainer2').style.display = 'none';
+            document.getElementById('gameContainer3').style.display = 'none';
             document.getElementById('pdfContainer').style.display = 'none'; // 교재 보기 화면 숨기기
             document.getElementById('cefrTestContainer').style.display = 'none'; // CEFR 테스트 화면 숨기기
             document.getElementById('mainMenu').style.display = 'block';
             clearInterval(timer); // 타이머 중지
         }
 
+        // PDF 보기 기능
         function viewPdf() {
             document.getElementById('mainMenu').style.display = 'none';
             document.getElementById('pdfContainer').style.display = 'block';
@@ -830,23 +1106,29 @@
             }
         }
 
-        // 엔터키 입력 이벤트 처리
+        // 게임 모드 1: 엔터키 입력 이벤트 처리
         function handleKeyPress(event) {
             if (event.key === "Enter" || event.keyCode === 13) {
                 checkAnswer(); // 엔터키를 누르면 정답을 체크
             }
         }
 
-        // 단어 넘기기
+        // 게임 모드 3: 단어 건너뛰기
         function skipWord() {
-            const [englishWord, koreanWord] = correctWords[currentWordIndex];
+            const [imageURL, question, correctOption, option1, option2, option3] = correctWords[currentWordIndex];
             if (gameMode === 1) {
+                const [englishWord, koreanWord] = correctWords[currentWordIndex];
                 document.getElementById('message').textContent = `정답은 '${englishWord}' 입니다.`;
                 document.getElementById('message').style.color = "#e74c3c";
-            } else {
+            } else if (gameMode === 2) {
+                const [englishWord, koreanWord] = correctWords[currentWordIndex];
                 const messageElement = document.getElementById('message2');
                 messageElement.textContent = `정답은 '${koreanWord}' 입니다.`;
                 messageElement.style.color = "#e74c3c";
+            } else if (gameMode === 3) {
+                const [imageURL, question, correctOption, option1, option2, option3] = correctWords[currentWordIndex];
+                document.getElementById('fillBlankMessage').textContent = `정답은 '${correctOption}' 입니다.`;
+                document.getElementById('fillBlankMessage').style.color = "#e74c3c";
             }
             currentWordIndex++;
             if (gameMode === 1) {
@@ -854,10 +1136,15 @@
                     displayNextWord();
                     updateProgressBar();
                 }, 2000);
-            } else {
+            } else if (gameMode === 2) {
                 setTimeout(() => {
                     displayNextWord2();
                     updateProgressBar2();
+                }, 2000);
+            } else if (gameMode === 3) {
+                setTimeout(() => {
+                    displayNextWord3();
+                    updateProgressBar3();
                 }, 2000);
             }
         }
@@ -921,6 +1208,7 @@
             document.getElementById('mainMenu').style.display = 'block';
             document.getElementById('gameContainer1').style.display = 'none';
             document.getElementById('gameContainer2').style.display = 'none';
+            document.getElementById('gameContainer3').style.display = 'none';
             document.getElementById('pdfContainer').style.display = 'none';
             document.getElementById('cefrTestContainer').style.display = 'none';
         };
