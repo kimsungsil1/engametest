@@ -132,10 +132,6 @@
             width: 0;
             background-color: #3498db;
             border-radius: 25px;
-            /* 기존 transition */
-            /* transition: width 0.5s ease-out; */
-
-            /* 수정된 transition: 빠르게 시작해서 천천히 끝남 */
             transition: width 0.6s cubic-bezier(0.9, 0.6, 0.2, 1);
         }
 
@@ -524,7 +520,7 @@
             const level = document.getElementById('levelSelect').value;
             const timeLimitInput = document.getElementById('timeLimit').value;
             timeLeft = timeLimitInput ? parseInt(timeLimitInput) : 30; // 사용자 정의 시간 제한 또는 기본 30초
-            if (level) {
+            if (gameMode === 3 || level) {
                 document.getElementById('mainMenu').style.display = 'none';
                 loadWords(level); // loadWords 호출 후 게임 설정
             } else {
@@ -537,19 +533,20 @@
 
             if (gameMode === 3) {
                 // 게임 모드 3: 이미지 기반 퀴즈
-                fileName = 'IMAGEQUESTIONS.xlsx';
+                // GitHub에 업로드한 IMAGEQUESTIONS.xlsx의 Raw URL을 사용하세요.
+                fileName = 'https://raw.githubusercontent.com/사용자이름/리포지토리이름/main/IMAGEQUESTIONS.xlsx'; // 실제 Raw URL로 변경
             } else {
                 // 기존 게임 모드 1 및 2: 레벨 기반 단어 리스트
                 if (level === 'A1') {
-                    fileName = 'A1WORD.xlsx';
+                    fileName = 'https://raw.githubusercontent.com/사용자이름/리포지토리이름/main/A1WORD.xlsx'; // 실제 Raw URL로 변경
                 } else if (level === 'A2') {
-                    fileName = 'A2WORD.xlsx';
+                    fileName = 'https://raw.githubusercontent.com/사용자이름/리포지토리이름/main/A2WORD.xlsx'; // 실제 Raw URL로 변경
                 } else if (level === 'B1') {
-                    fileName = 'B1WORD.xlsx';
+                    fileName = 'https://raw.githubusercontent.com/사용자이름/리포지토리이름/main/B1WORD.xlsx'; // 실제 Raw URL로 변경
                 } else if (level === 'B2') {
-                    fileName = 'B2WORD.xlsx';
+                    fileName = 'https://raw.githubusercontent.com/사용자이름/리포지토리이름/main/B2WORD.xlsx'; // 실제 Raw URL로 변경
                 } else if (level === 'C1') {
-                    fileName = 'C1WORD.xlsx';
+                    fileName = 'https://raw.githubusercontent.com/사용자이름/리포지토리이름/main/C1WORD.xlsx'; // 실제 Raw URL로 변경
                 }
             }
 
@@ -653,9 +650,9 @@
                 }
                 shuffleArray(options);
 
-                document.getElementById('option1').textContent = options[0];
-                document.getElementById('option2').textContent = options[1];
-                document.getElementById('option3').textContent = options[2];
+                document.getElementById('option1').textContent = `1. ${options[0]}`;
+                document.getElementById('option2').textContent = `2. ${options[1]}`;
+                document.getElementById('option3').textContent = `3. ${options[2]}`;
 
                 // 선택지의 스타일 초기화
                 const optionElements = ['option1', 'option2', 'option3'];
@@ -760,6 +757,8 @@
                 score += 5;
                 correctCount1++; // Increment correct count for mode 1
                 document.getElementById('scoreDisplay').textContent = `점수: ${score}`;
+                document.getElementById('correctSound').play();
+                currentWordIndex++;
                 setTimeout(() => {
                     displayNextWord();
                     updateProgressBar();
@@ -944,8 +943,8 @@
                 timeLeft--;
                 document.getElementById('timerDisplay').textContent = `남은 시간: ${timeLeft}초`;
 
-                if (timeLeft <= 10 && !correctAnswerGiven) {
-                    // 시간 10초 남았을 때 힌트 제공
+                if (timeLeft <= 10 && !correctAnswerGiven && gameMode === 1) {
+                    // 시간 10초 남았을 때 힌트 제공 (게임 모드 1에만 해당)
                     document.getElementById('message').textContent = `힌트: 단어의 첫 글자는 '${currentEnglishWord[0].toUpperCase()}' 입니다.`;
                     document.getElementById('message').style.color = "#f1c40f"; // 힌트 색상
                 }
@@ -1031,7 +1030,7 @@
             document.getElementById('mainMenu').style.display = 'none';
             document.getElementById('pdfContainer').style.display = 'block';
 
-            const url = 'abcbook.pdf'; // PDF 파일 경로
+            const url = 'https://raw.githubusercontent.com/사용자이름/리포지토리이름/main/abcbook.pdf'; // 실제 PDF 파일 URL로 변경
 
             // PDF 파일 로드
             pdfjsLib.getDocument(url).promise.then(function(pdfDoc_) {
@@ -1115,7 +1114,6 @@
 
         // 게임 모드 3: 단어 건너뛰기
         function skipWord() {
-            const [imageURL, question, correctOption, option1, option2, option3] = correctWords[currentWordIndex];
             if (gameMode === 1) {
                 const [englishWord, koreanWord] = correctWords[currentWordIndex];
                 document.getElementById('message').textContent = `정답은 '${englishWord}' 입니다.`;
