@@ -56,6 +56,12 @@
             display: flex;
             flex-direction: column;
             align-items: center;
+            opacity: 0;
+            transition: opacity 0.5s ease-in-out;
+        }
+
+        .container.show {
+            opacity: 1;
         }
 
         select, input {
@@ -94,15 +100,7 @@
             transform: translateY(-2px);
         }
 
-        #startButton {
-            font-weight: bold;
-        }
-
-        #startButton2 {
-            font-weight: bold;
-        }
-
-        #viewPdfButton {
+        #startButton, #startButton2, #viewPdfButton, #listenButton, #settingsButton {
             font-weight: bold;
         }
 
@@ -144,7 +142,15 @@
             /* transition: width 0.5s ease-out; */
 
             /* 수정된 transition: 빠르게 시작해서 천천히 끝남 */
-            transition: width 0.6s cubic-bezier(0.9, 0.6, 0.2, 1);
+            transition: width 0.6s cubic-bezier(0.9, 0.6, 0.2, 1), background-color 0.3s ease;
+        }
+
+        .progress-bar-fill.high-progress {
+            background-color: #2ecc71; /* 높은 진행률 시 색상 */
+        }
+
+        .progress-bar-fill.low-progress {
+            background-color: #e74c3c; /* 낮은 진행률 시 색상 */
         }
 
         .status-bar {
@@ -238,13 +244,71 @@
             }
             button {
                 padding: 12px;
+                font-size: 1rem;
             }
+            .word-item {
+                font-size: 1.2rem;
+            }
+            .progress-bar {
+                height: 20px;
+            }
+        }
+
+        /* 메시지 애니메이션 */
+        @keyframes correctAnimation {
+            from { background-color: #2ecc71; }
+            to { background-color: #3498db; }
+        }
+
+        @keyframes incorrectAnimation {
+            from { background-color: #e74c3c; }
+            to { background-color: #3498db; }
+        }
+
+        .correct {
+            animation: correctAnimation 0.5s forwards;
+        }
+
+        .incorrect {
+            animation: incorrectAnimation 0.5s forwards;
+        }
+
+        /* 로딩 스피너 스타일 */
+        #loadingSpinner {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background-color: rgba(255, 255, 255, 0.8);
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.3);
+            text-align: center;
+            font-size: 1.2rem;
+        }
+
+        /* 설정 및 피드백 폼 스타일 */
+        textarea {
+            width: 100%;
+            height: 100px;
+            padding: 10px;
+            font-size: 1rem;
+            border: 2px solid #3498db;
+            border-radius: 8px;
+            resize: vertical;
+            margin-bottom: 20px;
         }
 
     </style>
 </head>
 <body>
 
+    <!-- 로딩 스피너 -->
+    <div id="loadingSpinner" style="display: none;">
+        <p>로딩 중...</p>
+    </div>
+
+    <!-- 메인 메뉴 -->
     <div class="container" id="mainMenu">
         <h1>Word Master: 영어 어휘 도전</h1>
         <p>빠르고 재미있는 퀴즈로 어휘력을 키우세요.</p>
@@ -267,8 +331,45 @@
 
         <button id="viewPdfButton">교재 보기</button>
         <button id="startCEFRTest">CEFR 레벨 테스트 시작</button>
+        <button id="settingsButton">설정</button>
     </div>
 
+    <!-- 튜토리얼 화면 -->
+    <div class="container" id="tutorialContainer" style="display: none;">
+        <h2>튜토리얼</h2>
+        <p>게임 규칙:</p>
+        <ul>
+            <li>한글 단어를 보고 영어 단어를 입력하세요.</li>
+            <li>정답을 맞추면 점수를 얻고 단어의 음성이 재생됩니다.</li>
+            <li>시간 제한 내에 가능한 많이 맞춰보세요!</li>
+        </ul>
+        <button onclick="startGame()">게임 시작</button>
+        <button onclick="goHome()">홈으로 돌아가기</button>
+    </div>
+
+    <!-- 설정 화면 -->
+    <div class="container" id="settingsContainer" style="display: none;">
+        <h2>설정</h2>
+        <label>
+            <input type="checkbox" id="toggleSound" checked>
+            소리 효과
+        </label>
+        <br><br>
+        <label>
+            <input type="checkbox" id="toggleSpeech" checked>
+            음성 듣기
+        </label>
+        <br><br>
+        <button onclick="goHome()">홈으로 돌아가기</button>
+    </div>
+
+    <!-- 피드백 화면 -->
+    <div class="container" id="feedbackContainer" style="display: none;">
+        <h2>피드백</h2>
+        <textarea id="feedbackText" placeholder="게임에 대한 의견을 적어주세요."></textarea>
+        <button onclick="submitFeedback()">제출</button>
+        <button onclick="goHome()">홈으로 돌아가기</button>
+    </div>
     <!-- 첫 번째 게임 모드 (한글보고 영어입력) -->
     <div class="container" id="gameContainer1" style="display:none;">
         <div class="status-bar">
@@ -285,7 +386,8 @@
 
         <button id="submitButton" onclick="checkAnswer()">제출</button>
         <button id="skipButton" class="next-btn" onclick="skipWord()">다음으로 넘기기</button>
-        <button id="listenButton" onclick="playWordAudio()">음성 듣기</button>
+        <button id="listenButton" onclick="playWordAudio()">🔊 음성 듣기</button>
+        <button id="stopListenButton" onclick="stopWordAudio()">🔇 중지</button>
 
         <div class="progress-bar">
             <div class="progress-bar-fill" id="progressBar"></div>
@@ -340,7 +442,8 @@
 
         <button id="taSubmitButton" onclick="checkTAAAnswer()">제출</button>
         <button id="taSkipButton" class="next-btn" onclick="skipTAWord()">다음으로 넘기기</button>
-        <button id="taListenButton" onclick="playTAWordAudio()">음성 듣기</button>
+        <button id="taListenButton" onclick="playTAWordAudio()">🔊 음성 듣기</button>
+        <button id="taStopListenButton" onclick="stopWordAudio()">🔇 중지</button>
 
         <div class="progress-bar">
             <div class="progress-bar-fill" id="taProgressBar"></div>
@@ -480,6 +583,37 @@
         // CEFR 레벨 테스트 시작 버튼
         document.getElementById('startCEFRTest').addEventListener('click', startCEFRTest);
 
+        // 설정 버튼 이벤트 리스너
+        document.getElementById('settingsButton').addEventListener('click', function() {
+            showContainer('settingsContainer');
+        });
+
+        // 피드백 제출 버튼 이벤트 리스너
+        function submitFeedback() {
+            const feedback = document.getElementById('feedbackText').value.trim();
+            if (feedback) {
+                // 서버로 피드백 전송 또는 로컬 스토리지에 저장
+                alert("피드백이 제출되었습니다. 감사합니다!");
+                document.getElementById('feedbackContainer').style.display = 'none';
+                goHome();
+            } else {
+                alert("피드백을 입력해주세요.");
+            }
+        }
+
+        function showContainer(containerId) {
+            const containers = document.querySelectorAll('.container');
+            containers.forEach(container => {
+                container.classList.remove('show');
+                container.style.display = 'none';
+            });
+            const targetContainer = document.getElementById(containerId);
+            targetContainer.style.display = 'block';
+            setTimeout(() => {
+                targetContainer.classList.add('show');
+            }, 10); // 짧은 지연 후 클래스 추가
+        }
+
         function shuffleArray(array) {
             for (let i = array.length - 1; i > 0; i--) {
                 const j = Math.floor(Math.random() * (i + 1));
@@ -493,7 +627,7 @@
             const timeLimitInput = document.getElementById('timeLimit').value;
             timeLeft = timeLimitInput ? parseInt(timeLimitInput) : 30; // 사용자 정의 시간 제한 또는 기본 30초
             if (level) {
-                document.getElementById('mainMenu').style.display = 'none';
+                showContainer('loadingSpinner');
                 loadWords(level); // loadWords 호출 후 게임 설정
             } else {
                 alert("레벨을 선택해주세요!");
@@ -506,7 +640,7 @@
             taTotalTime = timeLimitInput ? parseInt(timeLimitInput) : 60; // 사용자 정의 타임어택 시간 또는 기본 60초
             timeLeft = taTotalTime;
             if (level) {
-                document.getElementById('mainMenu').style.display = 'none';
+                showContainer('loadingSpinner');
                 loadWordsForTimeAttack(level);
             } else {
                 alert("레벨을 선택해주세요!");
@@ -531,7 +665,7 @@
             fetch(fileName)
                 .then(response => {
                     if (!response.ok) {
-                        throw new Error('파일을 불러오지 못했습니다.');
+                        throw new Error('단어 파일을 불러오지 못했습니다. 다시 시도해주세요.');
                     }
                     return response.arrayBuffer();
                 })
@@ -547,16 +681,19 @@
                     correctCount2 = 0;
                     taScore = 0;
 
+                    // 사용자 진행 상황 저장
+                    saveUserProgress();
+
                     if (gameMode === 1) {
                         // 게임 모드 1 설정
-                        document.getElementById('gameContainer1').style.display = 'block';
+                        showContainer('gameContainer1');
                         document.getElementById('scoreDisplay').textContent = `점수: ${score}`;
                         document.getElementById('questionCounter').textContent = `0 / ${correctWords.length}`;
                         updateProgressBar();
                         displayNextWord();
                     } else if (gameMode === 2) {
                         // 게임 모드 2 설정
-                        document.getElementById('gameContainer2').style.display = 'block';
+                        showContainer('gameContainer2');
                         document.getElementById('scoreDisplay2').textContent = `점수: ${score}`;
                         document.getElementById('questionCounter2').textContent = `0 / ${correctWords.length}`;
                         updateProgressBar2();
@@ -564,11 +701,8 @@
                     }
                 })
                 .catch(error => {
-                    alert('단어 파일을 불러오는 중 오류가 발생했습니다: ' + error.message);
-                    document.getElementById('mainMenu').style.display = 'block';
-                    document.getElementById('gameContainer1').style.display = 'none';
-                    document.getElementById('gameContainer2').style.display = 'none';
-                    document.getElementById('timeAttackContainer').style.display = 'none';
+                    alert(`오류: ${error.message}`);
+                    showContainer('mainMenu');
                 });
         }
 
@@ -590,7 +724,7 @@
             fetch(fileName)
                 .then(response => {
                     if (!response.ok) {
-                        throw new Error('파일을 불러오지 못했습니다.');
+                        throw new Error('단어 파일을 불러오지 못했습니다. 다시 시도해주세요.');
                     }
                     return response.arrayBuffer();
                 })
@@ -603,8 +737,11 @@
                     currentWordIndex = 0;
                     taScore = 0;
 
+                    // 사용자 진행 상황 저장
+                    saveUserProgress();
+
                     // 게임 모드 3 설정
-                    document.getElementById('timeAttackContainer').style.display = 'block';
+                    showContainer('timeAttackContainer');
                     document.getElementById('taScoreDisplay').textContent = `점수: ${taScore}`;
                     document.getElementById('taQuestionCounter').textContent = `0 / ${correctWords.length}`;
                     updateTATimeBar();
@@ -612,34 +749,77 @@
                     startTATimer();
                 })
                 .catch(error => {
-                    alert('단어 파일을 불러오는 중 오류가 발생했습니다: ' + error.message);
-                    document.getElementById('mainMenu').style.display = 'block';
-                    document.getElementById('gameContainer1').style.display = 'none';
-                    document.getElementById('gameContainer2').style.display = 'none';
-                    document.getElementById('timeAttackContainer').style.display = 'none';
+                    alert(`오류: ${error.message}`);
+                    showContainer('mainMenu');
                 });
         }
 
         // 음성 듣기 기능 (게임 모드 1)
+        let isSpeaking = false;
+
         function playWordAudio() {
+            if (isSpeaking) return; // 이미 음성이 재생 중이면 함수 종료
+
             if (!currentEnglishWord) {
                 console.error("currentEnglishWord이 설정되지 않았습니다.");
                 return;
             }
+
+            const speakerIcon = document.getElementById('listenButton').querySelector('#speakerIcon') || document.getElementById('listenButton');
+            speakerIcon.textContent = '🔉'; // 음성 재생 중 아이콘 변경
+            isSpeaking = true;
+
             const utterance = new SpeechSynthesisUtterance(currentEnglishWord);
             utterance.lang = 'en-US';
+            
+            utterance.onend = () => {
+                speakerIcon.textContent = '🔊'; // 음성 재생 완료 시 아이콘 원래대로
+                isSpeaking = false;
+            };
+            
             speechSynthesis.speak(utterance);
+        }
+
+        function stopWordAudio() {
+            if (isSpeaking) {
+                speechSynthesis.cancel();
+                const speakerIcon = document.getElementById('listenButton').querySelector('#speakerIcon') || document.getElementById('listenButton');
+                speakerIcon.textContent = '🔊';
+                isSpeaking = false;
+            }
         }
 
         // 음성 듣기 기능 (타임어택)
         function playTAWordAudio() {
+            if (isSpeaking) return; // 이미 음성이 재생 중이면 함수 종료
+
             if (!currentEnglishWord) {
                 console.error("currentEnglishWord이 설정되지 않았습니다.");
                 return;
             }
+
+            const speakerIcon = document.getElementById('taListenButton').querySelector('#speakerIcon') || document.getElementById('taListenButton');
+            speakerIcon.textContent = '🔉'; // 음성 재생 중 아이콘 변경
+            isSpeaking = true;
+
             const utterance = new SpeechSynthesisUtterance(currentEnglishWord);
             utterance.lang = 'en-US';
+            
+            utterance.onend = () => {
+                speakerIcon.textContent = '🔊'; // 음성 재생 완료 시 아이콘 원래대로
+                isSpeaking = false;
+            };
+            
             speechSynthesis.speak(utterance);
+        }
+
+        function stopTAWordAudio() {
+            if (isSpeaking) {
+                speechSynthesis.cancel();
+                const speakerIcon = document.getElementById('taListenButton').querySelector('#speakerIcon') || document.getElementById('taListenButton');
+                speakerIcon.textContent = '🔊';
+                isSpeaking = false;
+            }
         }
 
         function displayNextWord() {
@@ -660,6 +840,7 @@
                 document.getElementById('submitButton').style.display = 'none';
                 document.getElementById('skipButton').style.display = 'none';
                 document.getElementById('listenButton').style.display = 'none';
+                document.getElementById('taStopListenButton')?.style.display = 'none';
                 clearInterval(timer);
             }
         }
@@ -736,24 +917,31 @@
                 document.getElementById('englishInput').style.borderColor = "#2ecc71"; // 정답 시 테두리 색 변경
                 score += 10;
                 correctCount1++; // Increment correct count for mode 1
+                updateScoreDisplay(); // 점수 애니메이션 함수 호출
                 document.getElementById('scoreDisplay').textContent = `점수: ${score}`;
                 
-                // 정답 효과음 재생
-                const correctSound = document.getElementById('correctSound');
-                correctSound.play().catch(error => console.error("Audio play error:", error));
+                // 소리 효과 토글 확인
+                if (document.getElementById('toggleSound').checked) {
+                    const correctSound = document.getElementById('correctSound');
+                    correctSound.play().catch(error => console.error("Audio play error:", error));
+                }
                 
-                // 영어 단어 음성 재생 추가
-                playWordAudio();
+                // 음성 듣기 토글 확인
+                if (document.getElementById('toggleSpeech').checked) {
+                    playWordAudio();
+                }
                 
                 currentWordIndex++;
                 setTimeout(() => {
                     displayNextWord();
                     updateProgressBar();
+                    saveUserProgress();
                 }, 1000);
             } else if (!correctAnswerGiven1) {
                 document.getElementById('message').textContent = `오답입니다. 정답은 '${englishWord}' 입니다. 다시 입력하세요.`;
                 document.getElementById('message').style.color = "#e74c3c";
                 document.getElementById('englishInput').style.borderColor = "#e74c3c"; // 오답 시 테두리 색 변경
+                document.getElementById('koreanWord').classList.add('incorrect'); // 애니메이션 클래스 추가
                 correctAnswerGiven1 = true;
 
                 // 진동 추가
@@ -764,13 +952,15 @@
                 document.getElementById('message').textContent = "정확하게 입력하셨습니다!";
                 document.getElementById('message').style.color = "#2ecc71";
                 document.getElementById('englishInput').style.borderColor = "#2ecc71"; // 다시 정답 맞춤
-                currentWordIndex++;
                 score += 5;
                 correctCount1++; // Increment correct count for mode 1
+                updateScoreDisplay(); // 점수 애니메이션 함수 호출
                 document.getElementById('scoreDisplay').textContent = `점수: ${score}`;
                 setTimeout(() => {
+                    document.getElementById('koreanWord').classList.remove('incorrect'); // 애니메이션 클래스 제거
                     displayNextWord();
                     updateProgressBar();
+                    saveUserProgress();
                 }, 1000);
             } else {
                 document.getElementById('message').textContent = "정확하게 입력하세요!";
@@ -793,11 +983,22 @@
                 document.getElementById('taEnglishInput').style.borderColor = "#2ecc71"; // 정답 시 테두리 색 변경
                 taScore += 10;
                 document.getElementById('taScoreDisplay').textContent = `점수: ${taScore}`;
-                const taCorrectSound = document.getElementById('taCorrectSound');
-                taCorrectSound.play().catch(error => console.error("Audio play error:", error));
+                
+                // 소리 효과 토글 확인
+                if (document.getElementById('toggleSound').checked) {
+                    const taCorrectSound = document.getElementById('taCorrectSound');
+                    taCorrectSound.play().catch(error => console.error("Audio play error:", error));
+                }
+
+                // 음성 듣기 토글 확인
+                if (document.getElementById('toggleSpeech').checked) {
+                    playTAWordAudio();
+                }
+
                 currentWordIndex++;
                 displayNextTimeAttackWord();
                 updateTATimeBar();
+                saveUserProgress();
             } else if (!correctAnswerGivenTA) {
                 document.getElementById('taMessage').textContent = `오답입니다. 정답은 '${englishWord}' 입니다. 다시 입력하세요.`;
                 document.getElementById('taMessage').style.color = "#e74c3c";
@@ -817,6 +1018,7 @@
                 currentWordIndex++;
                 displayNextTimeAttackWord();
                 updateTATimeBar();
+                saveUserProgress();
             } else {
                 document.getElementById('taMessage').textContent = "정확하게 입력하세요!";
                 document.getElementById('taMessage').style.color = "#e74c3c";
@@ -834,8 +1036,16 @@
             const messageElement = document.getElementById('message2');
 
             if (selectedOption === koreanWord) {
-                // 영어 발음 듣기
-                playWordAudio();
+                // 소리 효과 토글 확인
+                if (document.getElementById('toggleSound').checked) {
+                    const correctSound = document.getElementById('correctSound');
+                    correctSound.play().catch(error => console.error("Audio play error:", error));
+                }
+
+                // 음성 듣기 토글 확인
+                if (document.getElementById('toggleSpeech').checked) {
+                    playWordAudio();
+                }
 
                 score += 10;
                 correctCount2++; // Increment correct count for mode 2
@@ -852,6 +1062,7 @@
                 setTimeout(() => {
                     displayNextWord2();
                     updateProgressBar2();
+                    saveUserProgress();
                 }, 1000);
             } else {
                 messageElement.textContent = "오답입니다. 다시 시도하세요.";
@@ -928,51 +1139,95 @@
 
         function endTimeAttackGame() {
             alert(`타임어택 종료! 당신의 점수는 ${taScore}점입니다.`);
-            goHome();
+            showContainer('feedbackContainer');
         }
 
         function updateProgressBar() {
             const progressBar = document.getElementById('progressBar');
             const progress = (correctCount1 / correctWords.length) * 100;
             progressBar.style.width = `${progress}%`;
+
+            // 진행률에 따라 색상 변경
+            progressBar.classList.remove('high-progress', 'low-progress');
+            if (progress > 75) {
+                progressBar.classList.add('high-progress');
+            } else if (progress < 25) {
+                progressBar.classList.add('low-progress');
+            }
         }
 
         function updateProgressBar2() {
             const progressBar = document.getElementById('progressBar2');
             const progress = (correctCount2 / correctWords.length) * 100;
             progressBar.style.width = `${progress}%`;
+
+            // 진행률에 따라 색상 변경
+            progressBar.classList.remove('high-progress', 'low-progress');
+            if (progress > 75) {
+                progressBar.classList.add('high-progress');
+            } else if (progress < 25) {
+                progressBar.classList.add('low-progress');
+            }
         }
 
         function updateTATimeBar() {
             const progressBar = document.getElementById('taProgressBar');
             const progress = (currentWordIndex / correctWords.length) * 100;
             progressBar.style.width = `${progress}%`;
+
+            // 진행률에 따라 색상 변경
+            progressBar.classList.remove('high-progress', 'low-progress');
+            if (progress > 75) {
+                progressBar.classList.add('high-progress');
+            } else if (progress < 25) {
+                progressBar.classList.add('low-progress');
+            }
         }
 
         function goHome() {
+            showContainer('mainMenu');
             document.getElementById('gameContainer1').style.display = 'none';
             document.getElementById('gameContainer2').style.display = 'none';
             document.getElementById('timeAttackContainer').style.display = 'none';
             document.getElementById('pdfContainer').style.display = 'none'; // 교재 보기 화면 숨기기
             document.getElementById('cefrTestContainer').style.display = 'none'; // CEFR 테스트 화면 숨기기
-            document.getElementById('mainMenu').style.display = 'block';
+            document.getElementById('tutorialContainer').style.display = 'none'; // 튜토리얼 화면 숨기기
+            document.getElementById('settingsContainer').style.display = 'none'; // 설정 화면 숨기기
+            document.getElementById('feedbackContainer').style.display = 'none'; // 피드백 화면 숨기기
             clearInterval(timer); // 타이머 중지
         }
 
         function viewPdf() {
-            document.getElementById('mainMenu').style.display = 'none';
-            document.getElementById('pdfContainer').style.display = 'block';
+            showContainer('loadingSpinner');
+            fetch('abcbook.pdf')
+                .then(response => {
+                    if (!response.ok) {
+                        throw new Error('PDF 파일을 로드할 수 없습니다.');
+                    }
+                    return response.blob();
+                })
+                .then(blob => {
+                    const url = URL.createObjectURL(blob);
+                    document.getElementById('pdfCanvas').style.display = 'block';
+                    renderPdf(url);
+                })
+                .catch(error => {
+                    alert(`오류: ${error.message}`);
+                    showContainer('mainMenu');
+                });
+        }
 
-            const url = 'abcbook.pdf'; // PDF 파일 경로
-
-            // PDF 파일 로드
+        // PDF 렌더링 함수
+        function renderPdf(url) {
             pdfjsLib.getDocument(url).promise.then(function(pdfDoc_) {
                 pdfDoc = pdfDoc_;
+                pageNum = 1;
                 renderPage(pageNum);
+                showContainer('pdfContainer');
+                document.getElementById('loadingSpinner').style.display = 'none';
             }).catch(function(error) {
-                alert('PDF 파일을 로드하는 중 오류가 발생했습니다: ' + error.message);
-                document.getElementById('mainMenu').style.display = 'block';
-                document.getElementById('pdfContainer').style.display = 'none';
+                alert(`PDF 파일을 로드하는 중 오류가 발생했습니다: ${error.message}`);
+                showContainer('mainMenu');
             });
         }
 
@@ -1058,6 +1313,7 @@
             if (gameMode === 1) {
                 document.getElementById('message').textContent = `정답은 '${englishWord}' 입니다.`;
                 document.getElementById('message').style.color = "#e74c3c";
+                document.getElementById('koreanWord').classList.add('incorrect'); // 애니메이션 클래스 추가
             } else if (gameMode === 2) {
                 const messageElement = document.getElementById('message2');
                 messageElement.textContent = `정답은 '${koreanWord}' 입니다.`;
@@ -1066,13 +1322,16 @@
             currentWordIndex++;
             if (gameMode === 1) {
                 setTimeout(() => {
+                    document.getElementById('koreanWord').classList.remove('incorrect'); // 애니메이션 클래스 제거
                     displayNextWord();
                     updateProgressBar();
+                    saveUserProgress();
                 }, 2000);
             } else if (gameMode === 2) {
                 setTimeout(() => {
                     displayNextWord2();
                     updateProgressBar2();
+                    saveUserProgress();
                 }, 2000);
             }
         }
@@ -1086,13 +1345,13 @@
             setTimeout(() => {
                 displayNextTimeAttackWord();
                 updateTATimeBar();
+                saveUserProgress();
             }, 2000);
         }
 
         // CEFR 레벨 테스트 시작
         function startCEFRTest() {
-            document.getElementById('mainMenu').style.display = 'none';
-            document.getElementById('cefrTestContainer').style.display = 'block';
+            showContainer('loadingSpinner');
             loadCEFRQuestions();
         }
 
@@ -1118,7 +1377,7 @@
                 // 테스트 완료 후 결과 표시
                 const level = determineCEFRLevel(cefrScore);
                 alert(`테스트 완료! 당신의 CEFR 레벨은 ${level} 입니다.`);
-                goHome();
+                showContainer('feedbackContainer');
             }
         }
 
@@ -1132,6 +1391,7 @@
             cefrCurrentIndex++;
             setTimeout(() => {
                 displayNextCEFRQuestion();
+                saveUserProgress();
             }, 500);
         }
 
@@ -1144,15 +1404,430 @@
             else return 'A1';
         }
 
+        // 사용자 진행 상태 저장
+        function saveUserProgress() {
+            const gameState = {
+                correctWords,
+                currentWordIndex,
+                score,
+                correctCount1,
+                correctCount2,
+                taScore,
+                gameMode,
+                timeLeft,
+                cefrCurrentIndex,
+                cefrScore
+            };
+            localStorage.setItem('wordMasterGameState', JSON.stringify(gameState));
+        }
+
+        // 사용자 진행 상태 로드
+        function loadUserProgress() {
+            const savedState = localStorage.getItem('wordMasterGameState');
+            if (savedState) {
+                const gameState = JSON.parse(savedState);
+                correctWords = gameState.correctWords;
+                currentWordIndex = gameState.currentWordIndex;
+                score = gameState.score;
+                correctCount1 = gameState.correctCount1;
+                correctCount2 = gameState.correctCount2;
+                taScore = gameState.taScore;
+                gameMode = gameState.gameMode;
+                timeLeft = gameState.timeLeft;
+                cefrCurrentIndex = gameState.cefrCurrentIndex;
+                cefrScore = gameState.cefrScore;
+
+                // UI 업데이트
+                document.getElementById('scoreDisplay').textContent = `점수: ${score}`;
+                document.getElementById('scoreDisplay2').textContent = `점수: ${score}`;
+                document.getElementById('taScoreDisplay').textContent = `점수: ${taScore}`;
+                document.getElementById('questionCounter').textContent = `${currentWordIndex} / ${correctWords.length}`;
+                document.getElementById('questionCounter2').textContent = `${currentWordIndex} / ${correctWords.length}`;
+                document.getElementById('taQuestionCounter').textContent = `${currentWordIndex} / ${correctWords.length}`;
+            }
+        }
+
+        // 초기 로드 시 상태 복원 및 초기화
         window.onload = () => {
-            document.getElementById('mainMenu').style.display = 'block';
-            document.getElementById('gameContainer1').style.display = 'none';
-            document.getElementById('gameContainer2').style.display = 'none';
-            document.getElementById('timeAttackContainer').style.display = 'none';
-            document.getElementById('pdfContainer').style.display = 'none';
-            document.getElementById('cefrTestContainer').style.display = 'none';
+            loadUserProgress();
+            showContainer('mainMenu');
         };
     </script>
 
 </body>
 </html>
+<script>
+    // 점수 애니메이션 함수
+    function updateScoreDisplay() {
+        const scoreDisplay = document.getElementById('scoreDisplay');
+        let currentScore = parseInt(scoreDisplay.textContent.replace('점수: ', ''), 10);
+        const targetScore = score;
+        const increment = Math.ceil((targetScore - currentScore) / 10);
+
+        if (currentScore < targetScore) {
+            currentScore += increment;
+            scoreDisplay.textContent = `점수: ${currentScore}`;
+            requestAnimationFrame(updateScoreDisplay);
+        } else {
+            scoreDisplay.textContent = `점수: ${targetScore}`;
+        }
+
+        const scoreDisplay2 = document.getElementById('scoreDisplay2');
+        let currentScore2 = parseInt(scoreDisplay2.textContent.replace('점수: ', ''), 10);
+        const targetScore2 = score;
+        const increment2 = Math.ceil((targetScore2 - currentScore2) / 10);
+
+        if (currentScore2 < targetScore2) {
+            currentScore2 += increment2;
+            scoreDisplay2.textContent = `점수: ${currentScore2}`;
+            requestAnimationFrame(updateScoreDisplay);
+        } else {
+            scoreDisplay2.textContent = `점수: ${targetScore2}`;
+        }
+
+        const taScoreDisplay = document.getElementById('taScoreDisplay');
+        let currentTAScore = parseInt(taScoreDisplay.textContent.replace('점수: ', ''), 10);
+        const targetTAScore = taScore;
+        const incrementTA = Math.ceil((targetTAScore - currentTAScore) / 10);
+
+        if (currentTAScore < targetTAScore) {
+            currentTAScore += incrementTA;
+            taScoreDisplay.textContent = `점수: ${currentTAScore}`;
+            requestAnimationFrame(updateScoreDisplay);
+        } else {
+            taScoreDisplay.textContent = `점수: ${targetTAScore}`;
+        }
+    }
+
+    // 전체 코드 계속...
+</script>
+<script>
+    // 게임 종료 후 피드백 요청
+    function endTimeAttackGame() {
+        alert(`타임어택 종료! 당신의 점수는 ${taScore}점입니다.`);
+        showContainer('feedbackContainer');
+    }
+
+    // 게임 진행 상태 저장
+    function saveUserProgress() {
+        const gameState = {
+            correctWords,
+            currentWordIndex,
+            score,
+            correctCount1,
+            correctCount2,
+            taScore,
+            gameMode,
+            timeLeft,
+            cefrCurrentIndex,
+            cefrScore
+            // 필요한 다른 변수들 추가
+        };
+        localStorage.setItem('wordMasterGameState', JSON.stringify(gameState));
+    }
+
+    // 게임 진행 상태 로드
+    function loadGameState() {
+        const savedState = localStorage.getItem('wordMasterGameState');
+        if (savedState) {
+            const gameState = JSON.parse(savedState);
+            correctWords = gameState.correctWords;
+            currentWordIndex = gameState.currentWordIndex;
+            score = gameState.score;
+            correctCount1 = gameState.correctCount1;
+            correctCount2 = gameState.correctCount2;
+            taScore = gameState.taScore;
+            gameMode = gameState.gameMode;
+            timeLeft = gameState.timeLeft;
+            cefrCurrentIndex = gameState.cefrCurrentIndex;
+            cefrScore = gameState.cefrScore;
+
+            // 게임 모드에 따라 화면 설정
+            if (gameMode === 1) {
+                showContainer('gameContainer1');
+                document.getElementById('scoreDisplay').textContent = `점수: ${score}`;
+                document.getElementById('questionCounter').textContent = `${currentWordIndex} / ${correctWords.length}`;
+                updateProgressBar();
+                displayNextWord();
+            } else if (gameMode === 2) {
+                showContainer('gameContainer2');
+                document.getElementById('scoreDisplay2').textContent = `점수: ${score}`;
+                document.getElementById('questionCounter2').textContent = `${currentWordIndex} / ${correctWords.length}`;
+                updateProgressBar2();
+                displayNextWord2();
+            } else if (gameMode === 3) {
+                showContainer('timeAttackContainer');
+                document.getElementById('taScoreDisplay').textContent = `점수: ${taScore}`;
+                document.getElementById('taQuestionCounter').textContent = `${currentWordIndex} / ${correctWords.length}`;
+                updateTATimeBar();
+                displayNextTimeAttackWord();
+                startTATimer();
+            }
+        }
+    }
+
+    // 컨테이너 표시 함수
+    function showContainer(containerId) {
+        const containers = document.querySelectorAll('.container, .pdf-container, .feedbackContainer, .settingsContainer, .tutorialContainer');
+        containers.forEach(container => {
+            container.style.display = 'none';
+        });
+        const targetContainer = document.getElementById(containerId);
+        if (targetContainer) {
+            targetContainer.style.display = 'block';
+        }
+    }
+
+    // 언어 설정 관련 변수
+    let currentLanguage = 'ko';
+
+    // 언어 선택 드롭다운 이벤트 리스너
+    document.getElementById('languageSelect').addEventListener('change', function() {
+        currentLanguage = this.value;
+        updateLanguage();
+    });
+
+    // 언어 업데이트 함수
+    function updateLanguage() {
+        if (currentLanguage === 'en') {
+            document.querySelector('h1').textContent = "Word Master: English Vocabulary Challenge";
+            document.querySelectorAll('p')[0].textContent = "Boost your vocabulary with fast and fun quizzes.";
+            document.querySelectorAll('p')[1].textContent = "Experience the joy of learning!";
+            document.querySelector('label[for="timeLimit"]').textContent = "Time Limit (seconds): ";
+            document.getElementById('startButton').textContent = "Start Game (View Korean, Enter English)";
+            document.getElementById('startButton2').textContent = "Start Game (View English, Select Korean)";
+            document.getElementById('startTimeAttackButton').textContent = "Start Time Attack Game";
+            document.getElementById('viewPdfButton').textContent = "View Textbook";
+            document.getElementById('startCEFRTest').textContent = "Start CEFR Level Test";
+            // 게임 모드 1
+            document.getElementById('koreanWord').textContent = "Korean word will be displayed here";
+            document.getElementById('englishInput').placeholder = "Enter the English word";
+            document.getElementById('submitButton').textContent = "Submit";
+            document.getElementById('skipButton').textContent = "Skip to Next";
+            document.getElementById('listenButton').textContent = "Listen";
+            // 게임 모드 2
+            document.getElementById('englishWord').textContent = "English word will be displayed here";
+            document.getElementById('message2').textContent = "";
+            // 타임어택 모드
+            document.getElementById('taKoreanWord').textContent = "Korean word will be displayed here";
+            document.getElementById('taEnglishInput').placeholder = "Enter the English word";
+            document.getElementById('taSubmitButton').textContent = "Submit";
+            document.getElementById('taSkipButton').textContent = "Skip to Next";
+            document.getElementById('taListenButton').textContent = "Listen";
+            // CEFR 테스트
+            document.getElementById('cefrQuestion').textContent = "Questions will be displayed here";
+            document.getElementById('cefrOption1').textContent = "Option 1";
+            document.getElementById('cefrOption2').textContent = "Option 2";
+            document.getElementById('cefrOption3').textContent = "Option 3";
+            document.getElementById('cefrOption4').textContent = "Option 4";
+            // 피드백
+            document.getElementById('feedbackContainer').querySelector('h2').textContent = "Feedback";
+            document.getElementById('feedbackText').placeholder = "Please leave your feedback about the game.";
+            document.getElementById('submitFeedbackButton').textContent = "Submit";
+            // 설정
+            document.getElementById('settingsContainer').querySelector('h2').textContent = "Settings";
+            document.querySelector('label[for="toggleSound"]').textContent = "Sound Effects";
+            document.querySelector('label[for="toggleSpeech"]').textContent = "Speech";
+            // 튜토리얼
+            document.getElementById('tutorialContainer').querySelector('h2').textContent = "Tutorial";
+            document.getElementById('tutorialContainer').querySelector('ul').innerHTML = `
+                <li>Look at the Korean word and enter the corresponding English word.</li>
+                <li>If you get it right, you earn points and hear the word spoken.</li>
+                <li>Try to get as many correct as possible within the time limit!</li>
+            `;
+            document.getElementById('tutorialContainer').querySelector('button').textContent = "Start Game";
+        } else {
+            // 기본 한국어로 설정
+            document.querySelector('h1').textContent = "Word Master: 영어 어휘 도전";
+            document.querySelectorAll('p')[0].textContent = "빠르고 재미있는 퀴즈로 어휘력을 키우세요.";
+            document.querySelectorAll('p')[1].textContent = "학습의 재미를 경험하세요!";
+            document.querySelector('label[for="timeLimit"]').textContent = "시간 제한 (초): ";
+            document.getElementById('startButton').textContent = "게임 시작(한글보고 영어입력)";
+            document.getElementById('startButton2').textContent = "게임 시작(영어보고 한글선택)";
+            document.getElementById('startTimeAttackButton').textContent = "타임어택 게임 시작";
+            document.getElementById('viewPdfButton').textContent = "교재 보기";
+            document.getElementById('startCEFRTest').textContent = "CEFR 레벨 테스트 시작";
+            // 게임 모드 1
+            document.getElementById('koreanWord').textContent = "여기에 한글 단어가 표시됩니다";
+            document.getElementById('englishInput').placeholder = "영어 단어를 입력하세요";
+            document.getElementById('submitButton').textContent = "제출";
+            document.getElementById('skipButton').textContent = "다음으로 넘기기";
+            document.getElementById('listenButton').textContent = "음성 듣기";
+            // 게임 모드 2
+            document.getElementById('englishWord').textContent = "영어 단어가 여기에 표시됩니다";
+            document.getElementById('message2').textContent = "";
+            // 타임어택 모드
+            document.getElementById('taKoreanWord').textContent = "여기에 한글 단어가 표시됩니다";
+            document.getElementById('taEnglishInput').placeholder = "영어 단어를 입력하세요";
+            document.getElementById('taSubmitButton').textContent = "제출";
+            document.getElementById('taSkipButton').textContent = "다음으로 넘기기";
+            document.getElementById('taListenButton').textContent = "음성 듣기";
+            // CEFR 테스트
+            document.getElementById('cefrQuestion').textContent = "질문이 여기에 표시됩니다";
+            document.getElementById('cefrOption1').textContent = "옵션 1";
+            document.getElementById('cefrOption2').textContent = "옵션 2";
+            document.getElementById('cefrOption3').textContent = "옵션 3";
+            document.getElementById('cefrOption4').textContent = "옵션 4";
+            // 피드백
+            document.getElementById('feedbackContainer').querySelector('h2').textContent = "피드백";
+            document.getElementById('feedbackText').placeholder = "게임에 대한 의견을 적어주세요.";
+            document.getElementById('submitFeedbackButton').textContent = "제출";
+            // 설정
+            document.getElementById('settingsContainer').querySelector('h2').textContent = "설정";
+            document.querySelector('label[for="toggleSound"]').textContent = "소리 효과";
+            document.querySelector('label[for="toggleSpeech"]').textContent = "음성 듣기";
+            // 튜토리얼
+            document.getElementById('tutorialContainer').querySelector('h2').textContent = "튜토리얼";
+            document.getElementById('tutorialContainer').querySelector('ul').innerHTML = `
+                <li>한글 단어를 보고 영어 단어를 입력하세요.</li>
+                <li>정답을 맞추면 점수를 얻고 단어의 음성이 재생됩니다.</li>
+                <li>시간 제한 내에 가능한 많이 맞춰보세요!</li>
+            `;
+            document.getElementById('tutorialContainer').querySelector('button').textContent = "게임 시작";
+        }
+    }
+
+    // 설정 관련 기능
+    document.getElementById('settingsButton').addEventListener('click', function() {
+        showContainer('settingsContainer');
+    });
+
+    function submitFeedback() {
+        const feedback = document.getElementById('feedbackText').value.trim();
+        if (feedback) {
+            // 서버로 피드백 전송 또는 로컬 스토리지에 저장 (현재는 알림으로 대체)
+            alert("피드백이 제출되었습니다. 감사합니다!");
+            document.getElementById('feedbackContainer').style.display = 'none';
+            goHome();
+        } else {
+            alert("피드백을 입력해주세요.");
+        }
+    }
+
+    // 소리 및 음성 토글 기능
+    function playWordAudio() {
+        if (!currentEnglishWord) {
+            console.error("currentEnglishWord이 설정되지 않았습니다.");
+            return;
+        }
+        if (!document.getElementById('toggleSpeech').checked) return; // 음성 듣기 비활성화 시 실행 안 함
+
+        const utterance = new SpeechSynthesisUtterance(currentEnglishWord);
+        utterance.lang = 'en-US';
+        speechSynthesis.speak(utterance);
+    }
+
+    function playTAWordAudio() {
+        if (!currentEnglishWord) {
+            console.error("currentEnglishWord이 설정되지 않았습니다.");
+            return;
+        }
+        if (!document.getElementById('toggleSpeech').checked) return; // 음성 듣기 비활성화 시 실행 안 함
+
+        const utterance = new SpeechSynthesisUtterance(currentEnglishWord);
+        utterance.lang = 'en-US';
+        speechSynthesis.speak(utterance);
+    }
+
+    function updateProgressBar() {
+        const progressBar = document.getElementById('progressBar');
+        const progress = (correctCount1 / correctWords.length) * 100;
+        progressBar.style.width = `${progress}%`;
+
+        // 진행률에 따라 색상 변경
+        progressBar.classList.remove('high-progress', 'low-progress');
+        if (progress > 75) {
+            progressBar.classList.add('high-progress');
+        } else if (progress < 25) {
+            progressBar.classList.add('low-progress');
+        }
+    }
+
+    function updateProgressBar2() {
+        const progressBar = document.getElementById('progressBar2');
+        const progress = (correctCount2 / correctWords.length) * 100;
+        progressBar.style.width = `${progress}%`;
+
+        // 진행률에 따라 색상 변경
+        progressBar.classList.remove('high-progress', 'low-progress');
+        if (progress > 75) {
+            progressBar.classList.add('high-progress');
+        } else if (progress < 25) {
+            progressBar.classList.add('low-progress');
+        }
+    }
+
+    function updateTATimeBar() {
+        const progressBar = document.getElementById('taProgressBar');
+        const progress = (currentWordIndex / correctWords.length) * 100;
+        progressBar.style.width = `${progress}%`;
+    }
+
+    // 피드백 제출 버튼 이벤트 리스너
+    document.getElementById('submitFeedbackButton').addEventListener('click', submitFeedback);
+
+    // 설정 토글 이벤트 리스너
+    document.getElementById('toggleSound').addEventListener('change', function() {
+        // 소리 효과 토글
+        // 필요 시 추가 기능 구현
+    });
+
+    document.getElementById('toggleSpeech').addEventListener('change', function() {
+        // 음성 듣기 토글
+        // 필요 시 추가 기능 구현
+    });
+
+    // 피드백 컨테이너 및 설정 컨테이너 추가
+    // HTML 내에 다음과 같은 요소들이 있어야 합니다:
+    /*
+    <div class="container" id="feedbackContainer" style="display: none;">
+        <h2>피드백</h2>
+        <textarea id="feedbackText" placeholder="게임에 대한 의견을 적어주세요."></textarea>
+        <button id="submitFeedbackButton">제출</button>
+        <button onclick="goHome()">홈으로 돌아가기</button>
+    </div>
+
+    <div class="container" id="settingsContainer" style="display: none;">
+        <h2>설정</h2>
+        <label for="toggleSound">
+            <input type="checkbox" id="toggleSound" checked>
+            소리 효과
+        </label>
+        <label for="toggleSpeech">
+            <input type="checkbox" id="toggleSpeech" checked>
+            음성 듣기
+        </label>
+        <button onclick="goHome()">홈으로 돌아가기</button>
+    </div>
+
+    <div class="container" id="tutorialContainer" style="display: none;">
+        <h2>튜토리얼</h2>
+        <p>게임 규칙:</p>
+        <ul>
+            <li>한글 단어를 보고 영어 단어를 입력하세요.</li>
+            <li>정답을 맞추면 점수를 얻고 단어의 음성이 재생됩니다.</li>
+            <li>시간 제한 내에 가능한 많이 맞춰보세요!</li>
+        </ul>
+        <button onclick="startGame()">게임 시작</button>
+        <button onclick="goHome()">홈으로 돌아가기</button>
+    </div>
+    */
+
+    // 피드백 및 설정 컨테이너 요소들을 HTML에 추가해야 합니다.
+
+    // 피드백 컨테이너
+    // 이미 HTML에 추가되어 있다고 가정
+
+    // 설정 컨테이너
+    // 이미 HTML에 추가되어 있다고 가정
+
+    // 튜토리얼 컨테이너
+    // 이미 HTML에 추가되어 있다고 가정
+
+    // 게임 진행 상태 저장 및 로드
+    window.onbeforeunload = saveUserProgress; // 페이지를 닫기 전에 게임 상태 저장
+    window.onload = () => {
+        loadGameState(); // 게임 상태 로드
+        updateLanguage(); // 현재 언어 설정에 따라 UI 업데이트
+    };
+</script>
