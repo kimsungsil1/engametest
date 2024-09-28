@@ -3,11 +3,9 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Word Master: 영어 어휘 도전 & 교재 학습</title>
+    <title>Word Master: 영어 어휘 도전</title>
 
-    <!-- PDF.js 및 XLSX 라이브러리 추가 -->
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.9.359/pdf.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.17.0/xlsx.full.min.js"></script>
+    <!-- PDF.js 및 XLSX 라이브러리 제거 -->
 
     <style>
         /* Reset */
@@ -188,13 +186,6 @@
             background-color: #ecf0f1;
         }
 
-        .pdf-container {
-            width: 100%;
-            max-width: 600px; /* 크기 조정 */
-            margin: 20px auto;
-            text-align: center;
-        }
-
         canvas {
             width: 80%; /* 크기 조정 */
             max-width: 500px; /* 최대 너비 설정 */
@@ -291,13 +282,14 @@
             text-align: center;
             font-size: 1.2rem;
             z-index: 1000;
+            display: none;
         }
     </style>
 </head>
 <body>
 
     <!-- 로딩 스피너 -->
-    <div id="loadingSpinner" style="display: none;">
+    <div id="loadingSpinner">
         <p>로딩 중...</p>
     </div>
 
@@ -320,10 +312,7 @@
 
         <button id="startButton">게임 시작(한글보고 영어입력)</button>
         <button id="startButton2">게임 시작(영어보고 한글선택)</button>
-        <button id="startTimeAttackButton">타임어택 게임 시작</button>
 
-        <button id="viewPdfButton">교재 보기</button>
-        <button id="startCEFRTest">CEFR 레벨 테스트 시작</button>
         <button id="settingsButton">설정</button>
     </div>
 
@@ -420,74 +409,11 @@
         <button class="home-btn" onclick="goHome()">홈으로 돌아가기</button>
     </div>
 
-    <!-- 타임어택 게임 모드 -->
-    <div class="container" id="timeAttackContainer" style="display:none;">
-        <div class="status-bar">
-            <div id="taScoreDisplay">점수: 0</div>
-            <div id="taTimerDisplay">남은 시간: 60초</div>
-        </div>
-
-        <div class="word-container">
-            <div class="word-item" id="taKoreanWord" style="font-size: 1.5rem; margin-bottom: 20px;">여기에 한글 단어가 표시됩니다</div>
-            <input type="text" id="taEnglishInput" placeholder="영어 단어를 입력하세요" onkeypress="handleTAKeyPress(event)" autocomplete="off">
-        </div>
-
-        <p id="taMessage"></p>
-
-        <button id="taSubmitButton" onclick="checkTAAAnswer()">제출</button>
-        <button id="taSkipButton" class="next-btn" onclick="skipTAWord()">다음으로 넘기기</button>
-        <button id="taListenButton">🔊 음성 듣기</button>
-        <button id="taStopListenButton" onclick="stopTAWordAudio()">🔇 중지</button>
-
-        <div class="progress-bar">
-            <div class="progress-bar-fill" id="taProgressBar"></div>
-        </div>
-
-        <div id="taQuestionCounter">0 / 0</div>
-
-        <button class="home-btn" onclick="goHome()">홈으로 돌아가기</button>
-    </div>
-
-    <!-- 교재 보기 -->
-    <div class="pdf-container" id="pdfContainer" style="display: none;">
-        <h1>교재 보기</h1>
-        <canvas id="pdfCanvas"></canvas>
-        <div class="nav-buttons">
-            <button id="prevButton" onclick="prevPage()">이전 페이지</button>
-            <button id="nextButton" onclick="nextPage()">다음 페이지</button>
-        </div>
-        <div class="nav-input">
-            <input type="number" id="pageNumberInput" placeholder="페이지" min="1">
-            <button onclick="goToPage()">이동</button>
-        </div>
-        <button onclick="goHome()">홈으로 돌아가기</button>
-    </div>
-
-    <!-- CEFR 레벨 테스트 -->
-    <div class="container" id="cefrTestContainer" style="display:none;">
-        <div class="status-bar">
-            <div id="cefrQuestionCounter">0 / 0</div>
-        </div>
-
-        <div class="word-container">
-            <div class="word-item" id="cefrQuestion" style="font-size: 1.5rem; margin-bottom: 20px;">질문이 여기에 표시됩니다</div>
-        </div>
-
-        <div id="cefrOptionsContainer">
-            <div class="option" id="cefrOption1" onclick="checkCEFRAnswer('cefrOption1')"></div>
-            <div class="option" id="cefrOption2" onclick="checkCEFRAnswer('cefrOption2')"></div>
-            <div class="option" id="cefrOption3" onclick="checkCEFRAnswer('cefrOption3')"></div>
-            <div class="option" id="cefrOption4" onclick="checkCEFRAnswer('cefrOption4')"></div>
-        </div>
-
-        <button class="home-btn" onclick="goHome()">홈으로 돌아가기</button>
-    </div>
-
     <footer>
         제작: 김성실 | 문의: <a href="mailto:sungsil.kim@lcnine.kr">sungsil.kim@lcnine.kr</a>
     </footer>
 
-    <!-- 오디오 요소를 모든 게임 컨테이너 밖으로 이동시키고 preload 추가 -->
+    <!-- 오디오 요소 -->
     <audio id="correctSound" preload="auto">
         <source src="https://actions.google.com/sounds/v1/cartoon/ascending_boing.ogg" type="audio/ogg">
         <source src="https://actions.google.com/sounds/v1/cartoon/ascending_boing.mp3" type="audio/mpeg">
@@ -507,57 +433,17 @@
         let score = 0;
         let correctCount1 = 0; // For game mode 1
         let correctCount2 = 0; // For game mode 2
-        let taScore = 0; // For Time Attack mode
-        let taTotalTime = 60; // Default Time Attack time in seconds
         let timeLeft = 30;
         let timer;
         let currentEnglishWord = ""; 
-        let pdfDoc = null,
-            pageNum = 1,
-            pageRendering = false,
-            pageNumPending = null;
 
-        let gameMode = 1; // 1: 한글보고 영어입력, 2: 영어보고 한글선택, 3: 타임어택
-
-        // CEFR 테스트 관련 변수
-        let cefrQuestions = [];
-        let cefrCurrentIndex = 0;
-        let cefrScore = 0;
+        let gameMode = 1; // 1: 한글보고 영어입력, 2: 영어보고 한글선택
 
         // 게임 모드별 정답 시퀀스 변수
         let correctAnswerGiven1 = false;
         let correctAnswerGiven2 = false;
-        let correctAnswerGivenTA = false;
 
-        // CEFR 테스트 질문 데이터
-        const cefrTestQuestions = [
-            {
-                "question": "What is the capital of France?",
-                "options": ["Paris", "Berlin", "Madrid", "Rome"],
-                "answer": "Paris"
-            },
-            {
-                "question": "Choose the correct form: I _____ to the store yesterday.",
-                "options": ["go", "went", "gone", "going"],
-                "answer": "went"
-            },
-            {
-                "question": "Which word is an adjective?",
-                "options": ["Quickly", "Beauty", "Beautiful", "Run"],
-                "answer": "Beautiful"
-            },
-            {
-                "question": "Fill in the blank: She has been working here _____ 2010.",
-                "options": ["for", "since", "at", "in"],
-                "answer": "since"
-            },
-            {
-                "question": "Which is a synonym of 'begin'?",
-                "options": ["End", "Start", "Finish", "Close"],
-                "answer": "Start"
-            }
-            // 필요한 만큼 추가 질문을 여기에 추가하세요.
-        ];
+        // CEFR 테스트 및 타임어택 관련 변수 제거
 
         // 게임 시작 버튼에 대한 이벤트 리스너
         document.getElementById('startButton').addEventListener('click', function() {
@@ -571,18 +457,6 @@
             startGame();
         });
 
-        // 타임어택 게임 시작 버튼
-        document.getElementById('startTimeAttackButton').addEventListener('click', function() {
-            gameMode = 3;
-            startTimeAttackGame();
-        });
-
-        // 교재 보기 버튼
-        document.getElementById('viewPdfButton').addEventListener('click', viewPdf);
-
-        // CEFR 레벨 테스트 시작 버튼
-        document.getElementById('startCEFRTest').addEventListener('click', startCEFRTest);
-
         // 설정 버튼 이벤트 리스너
         document.getElementById('settingsButton').addEventListener('click', function() {
             showContainer('settingsContainer');
@@ -593,7 +467,7 @@
 
         // 전체 컨테이너 관리 함수
         function showContainer(containerId) {
-            const containers = document.querySelectorAll('.container, .pdf-container');
+            const containers = document.querySelectorAll('.container');
             containers.forEach(container => {
                 container.classList.remove('show');
                 container.style.display = 'none';
@@ -629,24 +503,11 @@
             }
         }
 
-        // 타임어택 게임 시작 함수
-        function startTimeAttackGame() {
-            const level = document.getElementById('levelSelect').value;
-            const timeLimitInput = document.getElementById('timeLimit').value;
-            taTotalTime = timeLimitInput ? parseInt(timeLimitInput) : 60; // 사용자 정의 타임어택 시간 또는 기본 60초
-            timeLeft = taTotalTime;
-            if (level) {
-                showContainer('loadingSpinner');
-                loadWordsForTimeAttack(level);
-            } else {
-                alert("레벨을 선택해주세요!");
-            }
-        }
-
         // 단어 로드 함수 (게임 모드 1 및 2)
         function loadWords(level) {
             let fileName;
 
+            // 엑셀 파일 이름 설정
             if (level === 'A1') {
                 fileName = 'A1WORD.xlsx';
             } else if (level === 'A2') {
@@ -676,7 +537,6 @@
                     score = 0;
                     correctCount1 = 0;
                     correctCount2 = 0;
-                    taScore = 0;
 
                     // 사용자 진행 상황 저장
                     saveUserProgress();
@@ -703,56 +563,9 @@
                 });
         }
 
-        // 단어 로드 함수 (타임어택 모드)
-        function loadWordsForTimeAttack(level) {
-            let fileName;
-
-            if (level === 'A1') {
-                fileName = 'A1WORD.xlsx';
-            } else if (level === 'A2') {
-                fileName = 'A2WORD.xlsx';
-            } else if (level === 'B1') {
-                fileName = 'B1WORD.xlsx';
-            } else if (level === 'B2') {
-                fileName = 'B2WORD.xlsx';
-            } else if (level === 'C1') {
-                fileName = 'C1WORD.xlsx';
-            }
-
-            fetch(fileName)
-                .then(response => {
-                    if (!response.ok) {
-                        throw new Error('단어 파일을 불러오지 못했습니다. 다시 시도해주세요.');
-                    }
-                    return response.arrayBuffer();
-                })
-                .then(data => {
-                    const workbook = XLSX.read(data, { type: 'array' });
-                    const sheetName = workbook.SheetNames[0];
-                    const sheet = workbook.Sheets[sheetName];
-                    const jsonData = XLSX.utils.sheet_to_json(sheet, { header: 1 });
-                    correctWords = shuffleArray(jsonData.slice(1));
-                    currentWordIndex = 0;
-                    taScore = 0;
-
-                    // 사용자 진행 상황 저장
-                    saveUserProgress();
-
-                    // 게임 모드 3 설정
-                    showContainer('timeAttackContainer');
-                    document.getElementById('taScoreDisplay').textContent = `점수: ${taScore}`;
-                    document.getElementById('taQuestionCounter').textContent = `0 / ${correctWords.length}`;
-                    updateTATimeBar();
-                    displayNextTimeAttackWord();
-                    startTATimer();
-                })
-                .catch(error => {
-                    alert(`오류: ${error.message}`);
-                    showContainer('mainMenu');
-                });
-        }
-
         // 음성 듣기 기능 (게임 모드 1)
+        let isSpeaking = false;
+
         function playWordAudio() {
             if (isSpeaking) return; // 이미 음성이 재생 중이면 함수 종료
 
@@ -785,39 +598,6 @@
             }
         }
 
-        // 음성 듣기 기능 (타임어택)
-        function playTAWordAudio() {
-            if (isSpeaking) return; // 이미 음성이 재생 중이면 함수 종료
-
-            if (!currentEnglishWord) {
-                console.error("currentEnglishWord이 설정되지 않았습니다.");
-                return;
-            }
-
-            const speakerIcon = document.getElementById('taListenButton');
-            speakerIcon.textContent = '🔉'; // 음성 재생 중 아이콘 변경
-            isSpeaking = true;
-
-            const utterance = new SpeechSynthesisUtterance(currentEnglishWord);
-            utterance.lang = 'en-US';
-            
-            utterance.onend = () => {
-                speakerIcon.textContent = '🔊'; // 음성 재생 완료 시 아이콘 원래대로
-                isSpeaking = false;
-            };
-            
-            speechSynthesis.speak(utterance);
-        }
-
-        function stopTAWordAudio() {
-            if (isSpeaking) {
-                speechSynthesis.cancel();
-                const speakerIcon = document.getElementById('taListenButton');
-                speakerIcon.textContent = '🔊';
-                isSpeaking = false;
-            }
-        }
-
         // 단어 표시 함수 (게임 모드 1)
         function displayNextWord() {
             if (currentWordIndex < correctWords.length) {
@@ -837,7 +617,7 @@
                 document.getElementById('submitButton').style.display = 'none';
                 document.getElementById('skipButton').style.display = 'none';
                 document.getElementById('listenButton').style.display = 'none';
-                document.getElementById('stopListenButton')?.style.display = 'none';
+                document.getElementById('stopListenButton').style.display = 'none';
                 clearInterval(timer);
             }
         }
@@ -885,23 +665,6 @@
                 document.getElementById('englishWord').textContent = '축하합니다! 모든 단어를 맞추셨습니다!';
                 document.getElementById('optionsContainer').style.display = 'none';
                 clearInterval(timer);
-            }
-        }
-
-        // 단어 표시 함수 (타임어택 모드)
-        function displayNextTimeAttackWord() {
-            if (currentWordIndex < correctWords.length && timeLeft > 0) {
-                const [englishWord, koreanWord] = correctWords[currentWordIndex];
-                currentEnglishWord = englishWord;
-                document.getElementById('taKoreanWord').textContent = koreanWord;
-                document.getElementById('taEnglishInput').value = '';
-                document.getElementById('taMessage').textContent = '';
-                document.getElementById('taEnglishInput').style.borderColor = "#3498db"; // 초기화
-                document.getElementById('taEnglishInput').focus();
-                correctAnswerGivenTA = false;
-                document.getElementById('taQuestionCounter').textContent = `${currentWordIndex + 1} / ${correctWords.length}`;
-            } else {
-                endTimeAttackGame();
             }
         }
 
@@ -964,64 +727,6 @@
             } else {
                 document.getElementById('message').textContent = "정확하게 입력하세요!";
                 document.getElementById('message').style.color = "#e74c3c";
-
-                // 추가 진동 (선택 사항)
-                if (navigator.vibrate) {
-                    navigator.vibrate(200); // 200ms 진동
-                }
-            }
-        }
-
-        // 정답 확인 함수 (타임어택 모드)
-        function checkTAAAnswer() {
-            const [englishWord] = correctWords[currentWordIndex];
-            const userAnswer = document.getElementById('taEnglishInput').value.trim().toLowerCase();
-
-            if (userAnswer === englishWord.toLowerCase()) {
-                document.getElementById('taMessage').textContent = "정답입니다!";
-                document.getElementById('taMessage').style.color = "#2ecc71";
-                document.getElementById('taEnglishInput').style.borderColor = "#2ecc71"; // 정답 시 테두리 색 변경
-                taScore += 10;
-                document.getElementById('taScoreDisplay').textContent = `점수: ${taScore}`;
-                
-                // 소리 효과 토글 확인
-                if (document.getElementById('toggleSound').checked) {
-                    const taCorrectSound = document.getElementById('taCorrectSound');
-                    taCorrectSound.play().catch(error => console.error("Audio play error:", error));
-                }
-
-                // 음성 듣기 토글 확인
-                if (document.getElementById('toggleSpeech').checked) {
-                    playTAWordAudio();
-                }
-
-                currentWordIndex++;
-                displayNextTimeAttackWord();
-                updateTATimeBar();
-                saveUserProgress();
-            } else if (!correctAnswerGivenTA) {
-                document.getElementById('taMessage').textContent = `오답입니다. 정답은 '${englishWord}' 입니다. 다시 입력하세요.`;
-                document.getElementById('taMessage').style.color = "#e74c3c";
-                document.getElementById('taEnglishInput').style.borderColor = "#e74c3c"; // 오답 시 테두리 색 변경
-                correctAnswerGivenTA = true;
-
-                // 진동 추가
-                if (navigator.vibrate) {
-                    navigator.vibrate(200); // 200ms 진동
-                }
-            } else if (correctAnswerGivenTA && userAnswer === englishWord.toLowerCase()) {
-                document.getElementById('taMessage').textContent = "정확하게 입력하셨습니다!";
-                document.getElementById('taMessage').style.color = "#2ecc71";
-                document.getElementById('taEnglishInput').style.borderColor = "#2ecc71"; // 다시 정답 맞춤
-                taScore += 5;
-                document.getElementById('taScoreDisplay').textContent = `점수: ${taScore}`;
-                currentWordIndex++;
-                displayNextTimeAttackWord();
-                updateTATimeBar();
-                saveUserProgress();
-            } else {
-                document.getElementById('taMessage').textContent = "정확하게 입력하세요!";
-                document.getElementById('taMessage').style.color = "#e74c3c";
 
                 // 추가 진동 (선택 사항)
                 if (navigator.vibrate) {
@@ -1125,27 +830,6 @@
             }, 1000);
         }
 
-        // 타임어택 타이머 시작
-        function startTATimer() {
-            document.getElementById('taTimerDisplay').textContent = `남은 시간: ${timeLeft}초`;
-            clearInterval(timer); // 기존 타이머 클리어
-            timer = setInterval(() => {
-                timeLeft--;
-                document.getElementById('taTimerDisplay').textContent = `남은 시간: ${timeLeft}초`;
-
-                if (timeLeft <= 0) {
-                    clearInterval(timer);
-                    endTimeAttackGame();
-                }
-            }, 1000);
-        }
-
-        // 타임어택 게임 종료 함수
-        function endTimeAttackGame() {
-            alert(`타임어택 종료! 당신의 점수는 ${taScore}점입니다.`);
-            showContainer('feedbackContainer');
-        }
-
         // 진행률 업데이트 함수 (게임 모드 1)
         function updateProgressBar() {
             const progressBar = document.getElementById('progressBar');
@@ -1176,26 +860,11 @@
             }
         }
 
-        // 진행률 업데이트 함수 (타임어택 모드)
-        function updateTATimeBar() {
-            const progressBar = document.getElementById('taProgressBar');
-            const progress = (currentWordIndex / correctWords.length) * 100;
-            progressBar.style.width = `${progress}%`;
-
-            // 진행률에 따라 색상 변경
-            progressBar.classList.remove('high-progress', 'low-progress');
-            if (progress > 75) {
-                progressBar.classList.add('high-progress');
-            } else if (progress < 25) {
-                progressBar.classList.add('low-progress');
-            }
-        }
-
         // 홈으로 돌아가기 함수
         function goHome() {
             showContainer('mainMenu');
             // 모든 게임 컨테이너 숨기기
-            const gameContainers = ['gameContainer1', 'gameContainer2', 'timeAttackContainer', 'pdfContainer', 'cefrTestContainer', 'tutorialContainer', 'settingsContainer', 'feedbackContainer'];
+            const gameContainers = ['gameContainer1', 'gameContainer2', 'tutorialContainer', 'settingsContainer', 'feedbackContainer'];
             gameContainers.forEach(id => {
                 const container = document.getElementById(id);
                 if (container) {
@@ -1203,116 +872,6 @@
                 }
             });
             clearInterval(timer); // 타이머 중지
-        }
-
-        // 교재 보기 함수
-        function viewPdf() {
-            showContainer('loadingSpinner');
-            fetch('abcbook.pdf')
-                .then(response => {
-                    if (!response.ok) {
-                        throw new Error('PDF 파일을 로드할 수 없습니다.');
-                    }
-                    return response.blob();
-                })
-                .then(blob => {
-                    const url = URL.createObjectURL(blob);
-                    renderPdf(url);
-                })
-                .catch(error => {
-                    alert(`오류: ${error.message}`);
-                    showContainer('mainMenu');
-                });
-        }
-
-        // PDF 렌더링 함수
-        function renderPdf(url) {
-            pdfjsLib.getDocument(url).promise.then(function(pdfDoc_) {
-                pdfDoc = pdfDoc_;
-                pageNum = 1;
-                renderPage(pageNum);
-                showContainer('pdfContainer');
-                document.getElementById('loadingSpinner').style.display = 'none';
-            }).catch(function(error) {
-                alert(`PDF 파일을 로드하는 중 오류가 발생했습니다: ${error.message}`);
-                showContainer('mainMenu');
-            });
-        }
-
-        // 페이지 렌더링 함수
-        function renderPage(num) {
-            pageRendering = true;
-
-            // 페이지 가져오기
-            pdfDoc.getPage(num).then(function(page) {
-                const scale = 1.0; // 스케일 조정하여 크기 감소
-                const viewport = page.getViewport({ scale: scale });
-                const canvas = document.getElementById('pdfCanvas');
-                const ctx = canvas.getContext('2d');
-                canvas.height = viewport.height;
-                canvas.width = viewport.width;
-
-                // 페이지 렌더링
-                const renderContext = {
-                    canvasContext: ctx,
-                    viewport: viewport
-                };
-                const renderTask = page.render(renderContext);
-
-                // 페이지 렌더링이 완료되면 처리
-                renderTask.promise.then(function() {
-                    pageRendering = false;
-
-                    if (pageNumPending !== null) {
-                        renderPage(pageNumPending);
-                        pageNumPending = null;
-                    }
-                });
-            });
-        }
-
-        // 이전 페이지 버튼 클릭
-        function prevPage() {
-            if (pageNum <= 1) {
-                return;
-            }
-            pageNum--;
-            renderPage(pageNum);
-        }
-
-        // 다음 페이지 버튼 클릭
-        function nextPage() {
-            if (pageNum >= pdfDoc.numPages) {
-                return;
-            }
-            pageNum++;
-            renderPage(pageNum);
-        }
-
-        // 페이지 번호 입력 후 이동
-        function goToPage() {
-            const pageNumberInput = document.getElementById('pageNumberInput').value;
-            const pageNumber = parseInt(pageNumberInput, 10);
-            if (pageNumber > 0 && pageNumber <= pdfDoc.numPages) {
-                pageNum = pageNumber;
-                renderPage(pageNum);
-            } else {
-                alert('유효한 페이지 번호를 입력하세요.');
-            }
-        }
-
-        // 엔터키 입력 이벤트 처리 (게임 모드 1)
-        function handleKeyPress(event) {
-            if (event.key === "Enter" || event.keyCode === 13) {
-                checkAnswer(); // 엔터키를 누르면 정답을 체크
-            }
-        }
-
-        // 엔터키 입력 이벤트 처리 (타임어택 모드)
-        function handleTAKeyPress(event) {
-            if (event.key === "Enter" || event.keyCode === 13) {
-                checkTAAAnswer(); // 엔터키를 누르면 정답을 체크
-            }
         }
 
         // 단어 넘기기 (게임 모드 1 및 2)
@@ -1344,74 +903,6 @@
             }
         }
 
-        // 단어 넘기기 (타임어택 모드)
-        function skipTAWord() {
-            const [englishWord, koreanWord] = correctWords[currentWordIndex];
-            document.getElementById('taMessage').textContent = `정답은 '${englishWord}' 입니다.`;
-            document.getElementById('taMessage').style.color = "#e74c3c";
-            currentWordIndex++;
-            setTimeout(() => {
-                displayNextTimeAttackWord();
-                updateTATimeBar();
-                saveUserProgress();
-            }, 2000);
-        }
-
-        // CEFR 레벨 테스트 시작
-        function startCEFRTest() {
-            showContainer('loadingSpinner');
-            loadCEFRQuestions();
-        }
-
-        function loadCEFRQuestions() {
-            // cefrTestQuestions 배열을 사용하여 질문 로드
-            cefrQuestions = shuffleArray(cefrTestQuestions);
-            cefrCurrentIndex = 0;
-            cefrScore = 0;
-            displayNextCEFRQuestion();
-        }
-
-        function displayNextCEFRQuestion() {
-            if (cefrCurrentIndex < cefrQuestions.length) {
-                const questionData = cefrQuestions[cefrCurrentIndex];
-                document.getElementById('cefrQuestion').textContent = questionData.question;
-                const options = shuffleArray(questionData.options);
-                document.getElementById('cefrOption1').textContent = options[0];
-                document.getElementById('cefrOption2').textContent = options[1];
-                document.getElementById('cefrOption3').textContent = options[2];
-                document.getElementById('cefrOption4').textContent = options[3];
-                document.getElementById('cefrQuestionCounter').textContent = `${cefrCurrentIndex + 1} / ${cefrQuestions.length}`;
-            } else {
-                // 테스트 완료 후 결과 표시
-                const level = determineCEFRLevel(cefrScore);
-                alert(`테스트 완료! 당신의 CEFR 레벨은 ${level} 입니다.`);
-                showContainer('feedbackContainer');
-            }
-        }
-
-        function checkCEFRAnswer(optionId) {
-            const selectedOption = document.getElementById(optionId).textContent;
-            const correctAnswer = cefrQuestions[cefrCurrentIndex].answer;
-
-            if (selectedOption === correctAnswer) {
-                cefrScore++;
-            }
-            cefrCurrentIndex++;
-            setTimeout(() => {
-                displayNextCEFRQuestion();
-                saveUserProgress();
-            }, 500);
-        }
-
-        function determineCEFRLevel(score) {
-            const percentage = (score / cefrQuestions.length) * 100;
-            if (percentage >= 90) return 'C1';
-            else if (percentage >= 75) return 'B2';
-            else if (percentage >= 60) return 'B1';
-            else if (percentage >= 45) return 'A2';
-            else return 'A1';
-        }
-
         // 사용자 진행 상태 저장
         function saveUserProgress() {
             const gameState = {
@@ -1420,11 +911,8 @@
                 score,
                 correctCount1,
                 correctCount2,
-                taScore,
                 gameMode,
-                timeLeft,
-                cefrCurrentIndex,
-                cefrScore
+                timeLeft
             };
             localStorage.setItem('wordMasterGameState', JSON.stringify(gameState));
         }
@@ -1439,19 +927,14 @@
                 score = gameState.score;
                 correctCount1 = gameState.correctCount1;
                 correctCount2 = gameState.correctCount2;
-                taScore = gameState.taScore;
                 gameMode = gameState.gameMode;
                 timeLeft = gameState.timeLeft;
-                cefrCurrentIndex = gameState.cefrCurrentIndex;
-                cefrScore = gameState.cefrScore;
 
                 // UI 업데이트
                 document.getElementById('scoreDisplay').textContent = `점수: ${score}`;
                 document.getElementById('scoreDisplay2').textContent = `점수: ${score}`;
-                document.getElementById('taScoreDisplay').textContent = `점수: ${taScore}`;
                 document.getElementById('questionCounter').textContent = `${currentWordIndex} / ${correctWords.length}`;
                 document.getElementById('questionCounter2').textContent = `${currentWordIndex} / ${correctWords.length}`;
-                document.getElementById('taQuestionCounter').textContent = `${currentWordIndex} / ${correctWords.length}`;
 
                 // 게임 모드에 따라 화면 설정
                 if (gameMode === 1) {
@@ -1462,11 +945,6 @@
                     showContainer('gameContainer2');
                     updateProgressBar2();
                     displayNextWord2();
-                } else if (gameMode === 3) {
-                    showContainer('timeAttackContainer');
-                    updateTATimeBar();
-                    displayNextTimeAttackWord();
-                    startTATimer();
                 }
             } else {
                 showContainer('mainMenu');
@@ -1476,7 +954,6 @@
         // 초기 로드 시 상태 복원 및 초기화
         window.addEventListener('load', () => {
             loadUserProgress();
-            // updateLanguage(); // 언어 전환 기능은 필요 시 추가
         });
 
         // 점수 애니메이션 함수
@@ -1506,19 +983,6 @@
             } else {
                 scoreDisplay2.textContent = `점수: ${targetScore2}`;
             }
-
-            const taScoreDisplay = document.getElementById('taScoreDisplay');
-            let currentTAScore = parseInt(taScoreDisplay.textContent.replace('점수: ', ''), 10);
-            const targetTAScore = taScore;
-            const incrementTA = Math.ceil((targetTAScore - currentTAScore) / 10);
-
-            if (currentTAScore < targetTAScore) {
-                currentTAScore += incrementTA;
-                taScoreDisplay.textContent = `점수: ${currentTAScore}`;
-                requestAnimationFrame(updateScoreDisplay);
-            } else {
-                taScoreDisplay.textContent = `점수: ${targetTAScore}`;
-            }
         }
 
         // 피드백 제출 함수
@@ -1531,6 +995,13 @@
                 goHome();
             } else {
                 alert("피드백을 입력해주세요.");
+            }
+        }
+
+        // 엔터키 입력 이벤트 처리 (게임 모드 1)
+        function handleKeyPress(event) {
+            if (event.key === "Enter" || event.keyCode === 13) {
+                checkAnswer(); // 엔터키를 누르면 정답을 체크
             }
         }
     </script>
