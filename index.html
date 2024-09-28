@@ -725,6 +725,7 @@
             }
         }
 
+        // 수정된 checkAnswer 함수: 정답 시 영어 단어 음성 재생 추가
         function checkAnswer() {
             const [englishWord] = correctWords[currentWordIndex];
             const userAnswer = document.getElementById('englishInput').value.trim().toLowerCase();
@@ -736,8 +737,14 @@
                 score += 10;
                 correctCount1++; // Increment correct count for mode 1
                 document.getElementById('scoreDisplay').textContent = `점수: ${score}`;
+                
+                // 정답 효과음 재생
                 const correctSound = document.getElementById('correctSound');
                 correctSound.play().catch(error => console.error("Audio play error:", error));
+                
+                // 영어 단어 음성 재생 추가
+                playWordAudio();
+                
                 currentWordIndex++;
                 setTimeout(() => {
                     displayNextWord();
