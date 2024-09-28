@@ -5,7 +5,8 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Word Master: 영어 어휘 도전</title>
 
-    <!-- PDF.js 및 XLSX 라이브러리 제거 -->
+    <!-- XLSX 라이브러리 추가 -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.17.3/xlsx.full.min.js"></script>
 
     <style>
         /* Reset */
@@ -111,7 +112,7 @@
             transform: translateY(-2px);
         }
 
-        #listenButton, #taListenButton {
+        #listenButton, #stopListenButton {
             background-color: #e74c3c;
         }
 
@@ -420,12 +421,6 @@
         Your browser does not support the audio element.
     </audio>
 
-    <audio id="taCorrectSound" preload="auto">
-        <source src="https://actions.google.com/sounds/v1/cartoon/ascending_boing.ogg" type="audio/ogg">
-        <source src="https://actions.google.com/sounds/v1/cartoon/ascending_boing.mp3" type="audio/mpeg">
-        Your browser does not support the audio element.
-    </audio>
-
     <script>
         // 전역 변수 정의
         let correctWords = [];
@@ -442,8 +437,6 @@
         // 게임 모드별 정답 시퀀스 변수
         let correctAnswerGiven1 = false;
         let correctAnswerGiven2 = false;
-
-        // CEFR 테스트 및 타임어택 관련 변수 제거
 
         // 게임 시작 버튼에 대한 이벤트 리스너
         document.getElementById('startButton').addEventListener('click', function() {
