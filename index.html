@@ -220,6 +220,9 @@
             <option value="B1">B1 - 중급</option>
             <option value="B2">B2 - 중급</option>
             <option value="C1">C1 - 고급</option>
+            <!-- 새로운 옵션 추가 -->
+            <option value="flatter">Flatter</option>
+            <option value="buyandsell">Buy and Sell</option>
         </select>
 
         <label for="timeLimit">시간 제한 (초):</label>
@@ -354,6 +357,10 @@
             if (level === '전체') {
                 // 모든 레벨의 파일을 배열에 추가
                 fileNames = ['A1WORD.xlsx', 'A2WORD.xlsx', 'B1WORD.xlsx', 'B2WORD.xlsx', 'C1WORD.xlsx'];
+            } else if (level === 'flatter') {
+                fileNames = ['flatter.xlsx'];
+            } else if (level === 'buyandsell') {
+                fileNames = ['buyandsell.xlsx'];
             } else {
                 // 선택된 레벨의 파일만 배열에 추가
                 fileNames = [`${level}WORD.xlsx`];
