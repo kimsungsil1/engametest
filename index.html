@@ -459,6 +459,10 @@
                 document.getElementById('scoreDisplay').textContent = `점수: ${score}`;
                 const correctSound = document.getElementById('correctSound');
                 correctSound.play().catch(error => console.error("Audio play error:", error));
+
+                // **정답을 맞추었을 때 발음 재생 추가**
+                playWordAudio();
+
                 currentWordIndex++;
                 setTimeout(() => {
                     displayNextWord();
@@ -478,6 +482,10 @@
                 document.getElementById('message').textContent = "정확하게 입력하셨습니다!";
                 document.getElementById('message').style.color = "#2ecc71";
                 document.getElementById('englishInput').style.borderColor = "#2ecc71"; // 다시 정답 맞춤
+
+                // **정답을 맞추었을 때 발음 재생 추가**
+                playWordAudio();
+
                 currentWordIndex++;
                 score += 5;
                 correctCount1++; // Increment correct count for mode 1
