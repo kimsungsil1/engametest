@@ -495,6 +495,7 @@
             const userAnswer = document.getElementById('englishInput').value.trim().toLowerCase();
 
             if (userAnswer === englishWord.toLowerCase()) {
+                // 정답 처리
                 document.getElementById('message').textContent = "정답입니다!";
                 document.getElementById('message').style.color = "#2ecc71";
                 document.getElementById('englishInput').style.borderColor = "#2ecc71"; // 정답 시 테두리 색 변경
@@ -513,7 +514,8 @@
                     updateProgressBar();
                 }, 1000);
             } else if (!correctAnswerGiven1) {
-                document.getElementById('message').textContent = `오답입니다. 다시 시도하세요.`;
+                // 첫 번째 오답 시
+                document.getElementById('message').textContent = `오답입니다. 정답은 '${englishWord}' 입니다. 정확하게 입력하세요.`;
                 document.getElementById('message').style.color = "#e74c3c";
                 document.getElementById('englishInput').style.borderColor = "#e74c3c"; // 오답 시 테두리 색 변경
                 correctAnswerGiven1 = true;
@@ -522,29 +524,31 @@
                 if (navigator.vibrate) {
                     navigator.vibrate(200); // 200ms 진동
                 }
-            } else if (correctAnswerGiven1 && userAnswer === englishWord.toLowerCase()) {
-                document.getElementById('message').textContent = "정확하게 입력하셨습니다!";
-                document.getElementById('message').style.color = "#2ecc71";
-                document.getElementById('englishInput').style.borderColor = "#2ecc71"; // 다시 정답 맞춤
-
-                // 정답을 맞추었을 때 발음 재생 추가
-                playWordAudio();
-
-                currentWordIndex++;
-                score += 5;
-                correctCount1++; // Increment correct count for mode 1
-                document.getElementById('scoreDisplay').textContent = `점수: ${score}`;
-                setTimeout(() => {
-                    displayNextWord();
-                    updateProgressBar();
-                }, 1000);
             } else {
-                document.getElementById('message').textContent = "정확하게 입력하세요!";
-                document.getElementById('message').style.color = "#e74c3c";
+                // 정답을 다시 입력하도록 요청
+                if (userAnswer === englishWord.toLowerCase()) {
+                    // 사용자가 정답을 정확하게 입력했을 때
+                    document.getElementById('message').textContent = "잘하셨습니다! 다음 문제로 넘어갑니다.";
+                    document.getElementById('message').style.color = "#2ecc71";
+                    document.getElementById('englishInput').style.borderColor = "#2ecc71";
 
-                // 추가 진동 (선택 사항)
-                if (navigator.vibrate) {
-                    navigator.vibrate(200); // 200ms 진동
+                    // 정답을 맞추었을 때 발음 재생 추가
+                    playWordAudio();
+
+                    currentWordIndex++;
+                    setTimeout(() => {
+                        displayNextWord();
+                        updateProgressBar();
+                    }, 1000);
+                } else {
+                    // 아직 정답을 정확하게 입력하지 못했을 때
+                    document.getElementById('message').textContent = `정답은 '${englishWord}' 입니다. 정확하게 다시 입력해주세요.`;
+                    document.getElementById('message').style.color = "#e74c3c";
+
+                    // 추가 진동 (선택 사항)
+                    if (navigator.vibrate) {
+                        navigator.vibrate(200); // 200ms 진동
+                    }
                 }
             }
         }
@@ -601,12 +605,6 @@
                 timeLeft--;
                 document.getElementById('timerDisplay').textContent = `남은 시간: ${timeLeft}초`;
 
-                if (timeLeft <= 10 && !correctAnswerGiven1) {
-                    // 시간 10초 남았을 때 힌트 제공
-                    document.getElementById('message').textContent = `힌트: 단어의 첫 글자는 '${currentEnglishWord[0].toUpperCase()}' 입니다.`;
-                    document.getElementById('message').style.color = "#f1c40f"; // 힌트 색상
-                }
-
                 if (timeLeft <= 0) {
                     clearInterval(timer); // 타이머 중지
                     skipWord(); // 시간이 끝나면 다음 문제로 넘어감
@@ -662,11 +660,11 @@
         function skipWord() {
             const [englishWord, koreanWord] = correctWords[currentWordIndex];
             if (gameMode === 1) {
-                document.getElementById('message').textContent = `정답은 '${englishWord}' 입니다.`;
+                document.getElementById('message').textContent = `정답은 '${englishWord}' 입니다. 다음 문제로 넘어갑니다.`;
                 document.getElementById('message').style.color = "#e74c3c";
             } else if (gameMode === 2) {
                 const messageElement = document.getElementById('message2');
-                messageElement.textContent = `정답은 '${koreanWord}' 입니다.`;
+                messageElement.textContent = `정답은 '${koreanWord}' 입니다. 다음 문제로 넘어갑니다.`;
                 messageElement.style.color = "#e74c3c";
             }
             currentWordIndex++;
