@@ -187,6 +187,7 @@
         <p>학습의 재미를 경험하세요!</p>
 
         <select id="levelSelect">
+            <option value="전체">전체 (A1~C1)</option>
             <option value="A1">A1 - 초급</option>
             <option value="A2">A2 - 초급</option>
             <option value="B1">B1 - 중급</option>
@@ -312,33 +313,37 @@
         }
 
         function loadWords(level) {
-            let fileName;
+            let fileNames = [];
 
-            if (level === 'A1') {
-                fileName = 'A1WORD.xlsx';
-            } else if (level === 'A2') {
-                fileName = 'A2WORD.xlsx';
-            } else if (level === 'B1') {
-                fileName = 'B1WORD.xlsx';
-            } else if (level === 'B2') {
-                fileName = 'B2WORD.xlsx';
-            } else if (level === 'C1') {
-                fileName = 'C1WORD.xlsx';
+            if (level === '전체') {
+                // 모든 레벨의 파일을 배열에 추가
+                fileNames = ['A1WORD.xlsx', 'A2WORD.xlsx', 'B1WORD.xlsx', 'B2WORD.xlsx', 'C1WORD.xlsx'];
+            } else {
+                // 선택된 레벨의 파일만 배열에 추가
+                fileNames = [`${level}WORD.xlsx`];
             }
 
-            fetch(fileName)
-                .then(response => {
-                    if (!response.ok) {
-                        throw new Error('파일을 불러오지 못했습니다.');
-                    }
-                    return response.arrayBuffer();
-                })
-                .then(data => {
-                    const workbook = XLSX.read(data, { type: 'array' });
-                    const sheetName = workbook.SheetNames[0];
-                    const sheet = workbook.Sheets[sheetName];
-                    const jsonData = XLSX.utils.sheet_to_json(sheet, { header: 1 });
-                    correctWords = shuffleArray(jsonData.slice(1));
+            let promises = fileNames.map(fileName => {
+                return fetch(fileName)
+                    .then(response => {
+                        if (!response.ok) {
+                            throw new Error(`${fileName} 파일을 불러오지 못했습니다.`);
+                        }
+                        return response.arrayBuffer();
+                    })
+                    .then(data => {
+                        const workbook = XLSX.read(data, { type: 'array' });
+                        const sheetName = workbook.SheetNames[0];
+                        const sheet = workbook.Sheets[sheetName];
+                        const jsonData = XLSX.utils.sheet_to_json(sheet, { header: 1 });
+                        return jsonData.slice(1); // 첫 번째 행은 헤더이므로 제외
+                    });
+            });
+
+            Promise.all(promises)
+                .then(results => {
+                    // 모든 단어를 하나의 배열로 합치고 섞기
+                    correctWords = shuffleArray([].concat(...results));
                     currentWordIndex = 0;
                     score = 0;
                     correctCount1 = 0;
@@ -460,7 +465,7 @@
                 const correctSound = document.getElementById('correctSound');
                 correctSound.play().catch(error => console.error("Audio play error:", error));
 
-                // **정답을 맞추었을 때 발음 재생 추가**
+                // 정답을 맞추었을 때 발음 재생 추가
                 playWordAudio();
 
                 currentWordIndex++;
@@ -483,7 +488,7 @@
                 document.getElementById('message').style.color = "#2ecc71";
                 document.getElementById('englishInput').style.borderColor = "#2ecc71"; // 다시 정답 맞춤
 
-                // **정답을 맞추었을 때 발음 재생 추가**
+                // 정답을 맞추었을 때 발음 재생 추가
                 playWordAudio();
 
                 currentWordIndex++;
